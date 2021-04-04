@@ -12,14 +12,13 @@
 #include "AudioProcessingComponent.h"
 
 //==============================================================================
-AudioProcessingComponent::AudioProcessingComponent()
+AudioProcessingComponent::AudioProcessingComponent() :
+    m_fSampleRate(0),
+    m_iNumChannels(2),
+    filt(0)
 {
     // In your constructor, you should add any child components, and
     // initialise any special settings that your component needs.
-    m_iNumChannels = 2;
-    m_fSampleRate = deviceManager.getAudioDeviceSetup().sampleRate;
-
-    filt = new FilterComponent(m_fSampleRate, m_iNumChannels);
 
     setAudioChannels(0, m_iNumChannels); // no inputs, two outputs
 }
@@ -28,8 +27,7 @@ AudioProcessingComponent::~AudioProcessingComponent()
 {
     shutdownAudio();
     audioBuffer.clear();
-
-    delete filt;
+    filt = 0;
 }
 
 //=============================================================================
@@ -37,6 +35,9 @@ void AudioProcessingComponent::prepareToPlay(int samplesPerBlockExpected, double
 {
     audioBuffer.setSize(1, samplesPerBlockExpected); //mono working buffer
     audioBuffer.clear();
+
+    m_fSampleRate = sampleRate;
+    filt = new FilterComponent(m_fSampleRate, m_iNumChannels);
 }
 
 void AudioProcessingComponent::getNextAudioBlock(const juce::AudioSourceChannelInfo& bufferToFill)
@@ -48,7 +49,8 @@ void AudioProcessingComponent::getNextAudioBlock(const juce::AudioSourceChannelI
     for (auto sample = 0; sample < bufferToFill.numSamples; ++sample)
         p[sample] = random.nextFloat() * 0.25f - 0.125f;
 
-    filt->processIIRLPF(p, p, bufferToFill.numSamples, 0.0); // LP filter noise
+    // CUTOFF RANGE IS 22 Hz - 20 kHz, GAIN RANGE IS 0.0 - 1.0
+    filt->processMovingAvgFilt(p, p, bufferToFill.numSamples, 10000.0, 0.5); //LP Filter noise
 
     // send to the Juce output buffer (ALL CHANNELS)
     for (auto channel = 0; channel < bufferToFill.buffer->getNumChannels(); ++channel)

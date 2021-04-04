@@ -24,8 +24,7 @@ public:
         m_fSampleRate(fSampleRate),
         m_iNumChannels(iNumChannels),
         m_iDelayInSamples(0),
-        m_fAlpha(0),
-        m_iBufSize(50) //arbitrary
+        m_iBufSize(1000) //necessary size for moving average filt
     {
         buf = new RingBuffer(m_iBufSize);
     }
@@ -35,13 +34,15 @@ public:
         m_fSampleRate = 0;
         m_iNumChannels = 0;
         m_iDelayInSamples = 0;
-        m_fAlpha = 0;
 
         delete buf;
         m_iBufSize = 0;
     }
 
     //=========================================================================
+    /*
+        ***NOTE*** Doesnt seem like this is working???
+
     void processIIRLPF(float* ppfInputBuffer, float* ppfOutputBuffer, int iBufferSize, float fCutoff)
     {
         m_fAlpha = fCutoff; //how does this relate to cutoff?
@@ -52,7 +53,31 @@ public:
             ppfOutputBuffer[i] = val + (m_fAlpha * buf->getDelayed(1));
         }
     }
+    */
+
+    void processMovingAvgFilt(float* ppfInputBuffer, float* ppfOutputBuffer, int iBufferSize, float fcutoff, float fGain)
+    {
+        int windowSize = ceil((0.443 / fcutoff) * m_fSampleRate); //CUTOFF RANGE MUST BE 22 Hz - 20 kHz
+        for (int i = 0; i < iBufferSize; i++)
+        {
+            // grab new input sample
+            float val = ppfInputBuffer[i];
+            buf->pushSample(val);
+            float movingSum = 0; //initialize sum
+            // go backwards in ringbuffer and sum the previous windowSize elements
+            for (int j = 0; j < windowSize; j++)
+            {
+                movingSum = movingSum + buf->getDelayed(j);
+            }
+
+            ppfOutputBuffer[i] = (1.0 / windowSize) * fGain * movingSum;
+        }
+    }
     
+    void processCombFilter(float* ppfInputBuffer, float* ppfOutputBuffer, int iBufferSize, float fDelayTime)
+    {
+        /* Comb filter implememtation goes here */
+    }
 
 private:
     //=========================================================================
@@ -60,7 +85,6 @@ private:
     int m_iNumChannels; //from APC
 
     int m_iDelayInSamples; //for Comb Filter...from user GUI
-    float m_fAlpha; //for LPF...from user GUI
 
     RingBuffer* buf;
     int m_iBufSize;
