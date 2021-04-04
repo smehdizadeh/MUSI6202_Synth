@@ -15,23 +15,24 @@
 class KarplusStrong
 {
 public:
-    KarplusStrong(double alpha, int M, double fs)
+    KarplusStrong(const juce::AudioSampleBuffer& karplusTableToUse, int M, double fs)
+        : karplusTable(karplusTableToUse)
     {
         delayLength = M;
-        attenuation = pow(alpha, (delayLength / 50));
+        //attenuation = pow(alpha, (delayLength / 50));
         sampleRate = (int)fs;
         karpWriteIdx = 0;
         inputArray = new float[delayLength];
-        karpArray = new float[sampleRate];
+        //karpArray = new float[sampleRate];
     }
 
     ~KarplusStrong()
     {
-        attenuation = 0;
+        //attenuation = 0;
         delayLength = 0;
         karpWriteIdx = 0;
-        //delete[] inputArray;
-        delete[] karpArray;
+        delete[] inputArray;
+        //delete[] karpArray;
     }
 
     int GetDelayLength()
@@ -43,7 +44,7 @@ public:
     {
         for (int i = 0; i < sampleRate; i++)
         {
-            arr[i] = karpArray[i];
+            arr[i] = inputArray[i];
         }
     }
 
@@ -74,7 +75,7 @@ public:
             inputArray[i] = random.nextFloat() * 0.25f - 0.125f;
         }
 
-        for (int i = 0; i < sampleRate; i++)
+        /*for (int i = 0; i < sampleRate; i++)
         {
             if (i < delayLength)
             {
@@ -85,15 +86,17 @@ public:
             {
                 karpArray[i] = attenuation * karpArray[i - delayLength];
             }
-        }
+        }*/
     }
 
 private:
     juce::Random random;
-    float attenuation;
+    //float attenuation;
     int delayLength;
     int sampleRate;
     float* inputArray;
-    float* karpArray;
+    //float* karpArray;
     int karpWriteIdx;
+
+    const juce::AudioSampleBuffer& karplusTable;
 };

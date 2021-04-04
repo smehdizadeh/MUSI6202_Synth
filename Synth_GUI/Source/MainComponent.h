@@ -24,6 +24,8 @@ private:
     //==============================================================================
     GUIComponent* gui;
     AudioProcessingComponent apc;
+    juce::AudioSampleBuffer karplusTable;
+    juce::OwnedArray<KarplusStrong> oscillators;
 
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainComponent)

@@ -42,7 +42,11 @@ AudioProcessingComponent::~AudioProcessingComponent()
 //=============================================================================
 void AudioProcessingComponent::prepareToPlay(int samplesPerBlockExpected, double sampleRate)
 {
-    
+    juce::String message;
+    message << "Preparing to play audio...\n";
+    message << " samplesPerBlockExpected = " << samplesPerBlockExpected << "\n";
+    message << " sampleRate = " << sampleRate;
+    juce::Logger::getCurrentLogger()->writeToLog(message);
 }
 
 
