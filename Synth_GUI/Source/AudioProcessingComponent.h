@@ -11,6 +11,7 @@
 #pragma once
 
 #include <JuceHeader.h>
+#include "SourceGeneration.h"
 
 //==============================================================================
 /*
@@ -29,7 +30,13 @@ public:
 
 private:
     //=========================================================================
-    juce::Random random; //for noise synthesis
+    juce::Random random;
+    KarplusStrong* KS;
+    double FS;
+    float* soundArray;
+    int writeIdx;
+    //juce::AudioBuffer<float> soundGenerationBuffer;
+    //int numChannels;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (AudioProcessingComponent)
 };

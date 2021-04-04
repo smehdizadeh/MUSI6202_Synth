@@ -4,6 +4,8 @@
               addUsingNamespaceToJuceHeader="0" displaySplashScreen="1" jucerFormatVersion="1">
   <MAINGROUP id="XrR8FM" name="Synth_GUI">
     <GROUP id="{C3061199-D255-0FA8-01B0-18BF710132E3}" name="Source">
+      <FILE id="DAr7A9" name="SourceGeneration.h" compile="0" resource="0"
+            file="Source/SourceGeneration.h"/>
       <FILE id="tdNsSS" name="GUIComponent.cpp" compile="1" resource="0"
             file="Source/GUIComponent.cpp"/>
       <FILE id="a3m9Ub" name="GUIComponent.h" compile="0" resource="0" file="Source/GUIComponent.h"/>
