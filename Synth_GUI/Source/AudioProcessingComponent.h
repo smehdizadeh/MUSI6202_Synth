@@ -11,6 +11,7 @@
 #pragma once
 
 #include <JuceHeader.h>
+#include "FilterComponent.h"
 
 //==============================================================================
 /*
@@ -29,7 +30,13 @@ public:
 
 private:
     //=========================================================================
+    float m_fSampleRate;
+    int m_iNumChannels;
+    juce::AudioBuffer<float> audioBuffer; //for temporary storage and processing
     juce::Random random; //for noise synthesis
+
+    // Modules
+    FilterComponent* filt;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (AudioProcessingComponent)
 };
