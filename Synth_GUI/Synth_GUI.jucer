@@ -4,6 +4,8 @@
               addUsingNamespaceToJuceHeader="0" displaySplashScreen="1" jucerFormatVersion="1">
   <MAINGROUP id="XrR8FM" name="Synth_GUI">
     <GROUP id="{C3061199-D255-0FA8-01B0-18BF710132E3}" name="Source">
+      <FILE id="Ho3by4" name="ModEffectsComponent.h" compile="0" resource="0"
+            file="Source/ModEffectsComponent.h"/>
       <FILE id="ZJkHEL" name="RingBuffer.h" compile="0" resource="0" file="Source/RingBuffer.h"/>
       <FILE id="Y16Svy" name="FilterComponent.h" compile="0" resource="0"
             file="Source/FilterComponent.h"/>
