@@ -20,9 +20,8 @@ class FilterComponent  : public juce::Component
 {
 public:
     //==========================================================================
-    FilterComponent(float fSampleRate, int iNumChannels) :
+    FilterComponent(float fSampleRate) :
         m_fSampleRate(fSampleRate),
-        m_iNumChannels(iNumChannels),
         m_iDelayInSamples(0),
         m_iBufSize(1000) //necessary size for moving average filt
     {
@@ -32,7 +31,6 @@ public:
     ~FilterComponent() override
     {
         m_fSampleRate = 0;
-        m_iNumChannels = 0;
         m_iDelayInSamples = 0;
 
         delete buf;
@@ -82,7 +80,6 @@ public:
 private:
     //=========================================================================
     float m_fSampleRate; //from APC
-    int m_iNumChannels; //from APC
 
     int m_iDelayInSamples; //for Comb Filter...from user GUI
 

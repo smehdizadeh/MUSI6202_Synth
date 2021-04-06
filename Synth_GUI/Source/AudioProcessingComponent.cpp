@@ -37,7 +37,7 @@ void AudioProcessingComponent::prepareToPlay(int samplesPerBlockExpected, double
     audioBuffer.clear();
 
     m_fSampleRate = sampleRate;
-    filt = new FilterComponent(m_fSampleRate, m_iNumChannels);
+    filt = new FilterComponent(m_fSampleRate);
 }
 
 void AudioProcessingComponent::getNextAudioBlock(const juce::AudioSourceChannelInfo& bufferToFill)
@@ -50,7 +50,7 @@ void AudioProcessingComponent::getNextAudioBlock(const juce::AudioSourceChannelI
         p[sample] = random.nextFloat() * 0.25f - 0.125f;
 
     // CUTOFF RANGE IS 22 Hz - 20 kHz, GAIN RANGE IS 0.0 - 1.0
-    filt->processMovingAvgFilt(p, p, bufferToFill.numSamples, 10000.0, 0.5); //LP Filter noise
+    filt->processMovingAvgFilt(p, p, bufferToFill.numSamples, 1000.0, 0.9); //LP Filter noise
 
     // send to the Juce output buffer (ALL CHANNELS)
     for (auto channel = 0; channel < bufferToFill.buffer->getNumChannels(); ++channel)
