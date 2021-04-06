@@ -9,8 +9,11 @@
 */
 
 #pragma once
+#define _USE_MATH_DEFINES
 
 #include <JuceHeader.h>
+#include <cmath>
+#include "RingBuffer.h"
 
 //==============================================================================
 /*
@@ -52,20 +55,44 @@ class LFOComponent : public juce::Component
 {
 public:
     //=======================================================================
-    LFOComponent()
+    LFOComponent(float fFreq, float fSampRate) :
+        m_fFreq(fFreq),
+        m_fSampleRate(fSampRate)
     {
+        if (fFreq == 0)
+            m_iTableSize = 1;
+        else
+            m_iTableSize = int(floor(m_fSampleRate / fFreq));
 
+        table = new RingBuffer(m_iTableSize);
+
+        calculateWavetable();
     }
 
     ~LFOComponent() override
     {
+        m_fSampleRate = 0;
+        m_iTableSize = 0;
 
+        delete table;
+        table = 0;
     }
-
-    //======================================================================
-    // IMPLEMENTATION GOES HERE
 
 private:
     //======================================================================
+    void calculateWavetable()
+    {
+        for (int i = 0; i < m_iTableSize; i++)
+        {
+            table->pushSample(static_cast<float>(sin(2 * M_PI * i * m_fFreq / m_fSampleRate)));
+        }
+    }
+
+    //======================================================================
+    float m_fSampleRate;
+    float m_fFreq; // from user GUI
+    int m_iTableSize;
+    RingBuffer* table; // lfo wavetable storage
+
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (LFOComponent)
 };
