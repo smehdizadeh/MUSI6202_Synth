@@ -15,7 +15,8 @@
 AudioProcessingComponent::AudioProcessingComponent() :
     m_fSampleRate(0),
     m_iNumChannels(2),
-    filt(0)
+    filt(0),
+    revrb(0)
 {
     // In your constructor, you should add any child components, and
     // initialise any special settings that your component needs.
@@ -28,6 +29,7 @@ AudioProcessingComponent::~AudioProcessingComponent()
     shutdownAudio();
     audioBuffer.clear();
     filt = 0;
+    revrb = 0;
 }
 
 //=============================================================================
@@ -38,6 +40,7 @@ void AudioProcessingComponent::prepareToPlay(int samplesPerBlockExpected, double
 
     m_fSampleRate = sampleRate;
     filt = new FilterComponent(m_fSampleRate);
+    revrb = new ReverbComponent(m_fSampleRate, samplesPerBlockExpected);
 }
 
 void AudioProcessingComponent::getNextAudioBlock(const juce::AudioSourceChannelInfo& bufferToFill)
@@ -50,7 +53,10 @@ void AudioProcessingComponent::getNextAudioBlock(const juce::AudioSourceChannelI
         p[sample] = random.nextFloat() * 0.25f - 0.125f;
 
     // CUTOFF RANGE IS 22 Hz - 20 kHz, GAIN RANGE IS 0.0 - 1.0
-    filt->processMovingAvgFilt(p, p, bufferToFill.numSamples, 1000.0, 0.9); //LP Filter noise
+    //filt->processMovingAvgFilt(p, p, bufferToFill.numSamples, 1000.0, 0.9); //LP Filter noise
+
+    // CONVOLUTIONAL REVERB TESTING
+    revrb->processConvReverb(p, p, bufferToFill.numSamples);
 
     // send to the Juce output buffer (ALL CHANNELS)
     for (auto channel = 0; channel < bufferToFill.buffer->getNumChannels(); ++channel)

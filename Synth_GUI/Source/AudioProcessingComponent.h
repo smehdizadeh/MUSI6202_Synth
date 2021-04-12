@@ -12,6 +12,7 @@
 
 #include <JuceHeader.h>
 #include "FilterComponent.h"
+#include "ReverbComponent.h"
 
 //==============================================================================
 /*
@@ -37,6 +38,7 @@ private:
 
     // Modules
     FilterComponent* filt;
+    ReverbComponent* revrb;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (AudioProcessingComponent)
 };
