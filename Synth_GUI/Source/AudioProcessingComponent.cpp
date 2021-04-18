@@ -33,15 +33,21 @@ AudioProcessingComponent::~AudioProcessingComponent()
 //=============================================================================
 void AudioProcessingComponent::prepareToPlay(int samplesPerBlockExpected, double sampleRate)
 {
+    adsr.setSampleRate(sampleRate);
+    
     audioBuffer.setSize(1, samplesPerBlockExpected); //mono working buffer
     audioBuffer.clear();
 
     m_fSampleRate = sampleRate;
     filt = new FilterComponent(m_fSampleRate);
+
 }
 
 void AudioProcessingComponent::getNextAudioBlock(const juce::AudioSourceChannelInfo& bufferToFill)
 {
+    adsr.applyEnvelopeToBuffer(audioBuffer, bufferToFill.startSample, bufferToFill.numSamples);
+
+
     // EVERYTHING DONE IN MONO AND THEN COPIED TO ADDITIONAL CHANNELS
     auto* p = audioBuffer.getWritePointer(0); //pointer to working buffer
 
@@ -50,9 +56,10 @@ void AudioProcessingComponent::getNextAudioBlock(const juce::AudioSourceChannelI
         p[sample] = random.nextFloat() * 0.25f - 0.125f;
 
     // CUTOFF RANGE IS 22 Hz - 20 kHz, GAIN RANGE IS 0.0 - 1.0
-    filt->processMovingAvgFilt(p, p, bufferToFill.numSamples, 1000.0, 0.9); //LP Filter noise
-
+    //filt->processMovingAvgFilt(p, p, bufferToFill.numSamples, 1000.0, 0.9); //LP Filter noise
+    filt->processCombFilter(p, p, bufferToFill.numSamples, 5); //comb filter - I want a slider to change the delay time!
     // send to the Juce output buffer (ALL CHANNELS)
+
     for (auto channel = 0; channel < bufferToFill.buffer->getNumChannels(); ++channel)
     {
         bufferToFill.buffer->copyFrom(channel, bufferToFill.startSample, p, bufferToFill.numSamples);

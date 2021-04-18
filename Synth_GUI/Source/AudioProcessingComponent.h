@@ -34,6 +34,9 @@ private:
     int m_iNumChannels;
     juce::AudioBuffer<float> audioBuffer; //for temporary storage and processing
     juce::Random random; //for noise synthesis
+    // define the adsr juce class
+    juce::ADSR adsr;
+    juce::ADSR::Parameters adsrParams;
 
     // Modules
     FilterComponent* filt;
