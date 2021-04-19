@@ -1,8 +1,10 @@
 /*
   ==============================================================================
+
     RingBuffer.h
     Created: 3 Apr 2021 11:15:45pm
     Author:  sophi
+
   ==============================================================================
 */
 
@@ -13,7 +15,7 @@
 //==============================================================================
 /*
 */
-class RingBuffer : public juce::Component
+class RingBuffer  : public juce::Component
 {
 public:
     //==========================================================================
@@ -47,10 +49,10 @@ public:
 
     float getDelayed(int d)
     {
-        int readIdx = ((m_iWriteIdx + m_iRingBuffSize) - d - 1) % m_iRingBuffSize; //get a read index for delayed sample
+        int readIdx = ((m_iWriteIdx + m_iRingBuffSize) - d -1) % m_iRingBuffSize; //get a read index for delayed sample
         return m_pfBuff[readIdx];
     }
-
+   
 private:
     //=========================================================================
     int m_iRingBuffSize;
@@ -58,5 +60,5 @@ private:
 
     int m_iWriteIdx;
 
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(RingBuffer)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (RingBuffer)
 };

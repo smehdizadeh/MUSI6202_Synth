@@ -12,6 +12,7 @@
 
 #include <JuceHeader.h>
 #include "SourceGeneration.h"
+#include "FilterComponent.h"
 
 //==============================================================================
 /*
@@ -30,13 +31,15 @@ public:
 
 private:
     //=========================================================================
-    KarplusStrong* KS;
     float* m_pfSoundArray;
     float m_fFreq;
-    double m_dFS;
+    float m_fSampleRate;
+    int m_iNumChannels;
+    juce::AudioBuffer<float> audioBuffer; //for temporary storage and processing
 
-    //juce::AudioBuffer<float> soundGenerationBuffer;
-    //int numChannels;
+    // Modules
+    FilterComponent* filt;
+    KarplusStrong* KS;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (AudioProcessingComponent)
 };
