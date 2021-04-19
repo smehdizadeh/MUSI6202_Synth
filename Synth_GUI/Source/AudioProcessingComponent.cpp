@@ -19,7 +19,8 @@ AudioProcessingComponent::AudioProcessingComponent() :
     m_fFreq(0),
     m_fSampleRate(0),
     m_iNumChannels(2),
-    filt(0)
+    filt(0),
+    key(0)
 {
     // In your constructor, you should add any child components, and
     // initialise any special settings that your component needs.
@@ -61,17 +62,34 @@ void AudioProcessingComponent::prepareToPlay(int samplesPerBlockExpected, double
 void AudioProcessingComponent::getNextAudioBlock(const juce::AudioSourceChannelInfo& bufferToFill)
 {
     // EVERYTHING DONE IN MONO AND THEN COPIED TO ADDITIONAL CHANNELS
+    if (key.isKeyCurrentlyDown(juce::KeyPress::upKey))
+    {
+        filt->AdjustCutoffFreq(juce::KeyPress::upKey);
+    }
+
+    if (key.isKeyCurrentlyDown(juce::KeyPress::downKey))
+    {
+        filt->AdjustCutoffFreq(juce::KeyPress::downKey);
+    }
+
     auto* p = audioBuffer.getWritePointer(0); //pointer to working buffer
 
-    // Fill the required number of samples with noise between -0.125 and +0.125
+
     for (auto sample = 0; sample < bufferToFill.numSamples; ++sample)
     {
-        p[sample] = m_pfSoundArray[KS->GetKarpWriteIdx()];
+        if (key.isKeyCurrentlyDown(juce::KeyPress::spaceKey))
+        {
+            p[sample] = m_pfSoundArray[KS->GetKarpWriteIdx()];
+        }
+        else
+        {
+            p[sample] = 0;
+        }
         KS->SetKarpWriteIdx((int)(m_fSampleRate/m_fFreq));
     }
 
     // CUTOFF RANGE IS 22 Hz - 20 kHz, GAIN RANGE IS 0.0 - 1.0
-    filt->processMovingAvgFilt(p, p, bufferToFill.numSamples, 1000.0, 0.9); //LP Filter noise
+    filt->processMovingAvgFilt(p, p, bufferToFill.numSamples, filt->GetCutoffFreq(), 0.9); //LP Filter noise
 
     // send to the Juce output buffer (ALL CHANNELS)
     for (auto channel = 0; channel < bufferToFill.buffer->getNumChannels(); ++channel)
@@ -84,3 +102,4 @@ void AudioProcessingComponent::releaseResources()
 {
 
 }
+

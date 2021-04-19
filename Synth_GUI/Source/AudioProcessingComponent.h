@@ -35,11 +35,13 @@ private:
     float m_fFreq;
     float m_fSampleRate;
     int m_iNumChannels;
+
     juce::AudioBuffer<float> audioBuffer; //for temporary storage and processing
 
     // Modules
     FilterComponent* filt;
     KarplusStrong* KS;
+    juce::KeyPress key;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (AudioProcessingComponent)
 };
