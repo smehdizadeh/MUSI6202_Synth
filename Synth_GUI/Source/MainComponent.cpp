@@ -14,7 +14,7 @@ MainComponent::MainComponent()
 
 MainComponent::~MainComponent()
 {
-    
+    delete gui;
 }
 
 //==============================================================================
