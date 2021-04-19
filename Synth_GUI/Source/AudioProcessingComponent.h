@@ -30,11 +30,11 @@ public:
 
 private:
     //=========================================================================
-    juce::Random random;
     KarplusStrong* KS;
-    double FS;
-    float* soundArray;
-    int writeIdx;
+    float* m_pfSoundArray;
+    float m_fFreq;
+    double m_dFS;
+
     //juce::AudioBuffer<float> soundGenerationBuffer;
     //int numChannels;
 

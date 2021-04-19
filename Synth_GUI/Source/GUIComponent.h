@@ -1,10 +1,8 @@
 /*
   ==============================================================================
-
     GUIComponent.h
     Created: 31 Mar 2021 11:53:41am
     Author:  sophi
-
   ==============================================================================
 */
 
@@ -16,7 +14,7 @@
 //==============================================================================
 /*
 */
-class GUIComponent  : public juce::Component
+class GUIComponent : public juce::Component
 {
 public:
     //==========================================================================
@@ -24,7 +22,7 @@ public:
     ~GUIComponent() override;
 
     //==========================================================================
-    void paint (juce::Graphics&) override;
+    void paint(juce::Graphics&) override;
     void resized() override;
 
 private:
@@ -32,5 +30,5 @@ private:
     juce::Slider dummySlider; //doesn't do anything, just to test the gui
     AudioProcessingComponent& apc;
 
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (GUIComponent)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(GUIComponent)
 };
