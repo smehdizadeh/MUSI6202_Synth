@@ -9,6 +9,8 @@
       <FILE id="dHBPIN" name="impulseAssets.h" compile="0" resource="0" file="Source/impulseAssets.h"/>
       <FILE id="DGzDwj" name="ReverbComponent.h" compile="0" resource="0"
             file="Source/ReverbComponent.h"/>
+      <FILE id="DAr7A9" name="SourceGeneration.h" compile="0" resource="0"
+            file="Source/SourceGeneration.h"/>
       <FILE id="Ho3by4" name="ModEffectsComponent.h" compile="0" resource="0"
             file="Source/ModEffectsComponent.h"/>
       <FILE id="ZJkHEL" name="RingBuffer.h" compile="0" resource="0" file="Source/RingBuffer.h"/>

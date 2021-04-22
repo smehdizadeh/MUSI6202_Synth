@@ -11,6 +11,7 @@
 #pragma once
 
 #include <JuceHeader.h>
+#include "SourceGeneration.h"
 #include "FilterComponent.h"
 #include "ReverbComponent.h"
 
@@ -31,14 +32,18 @@ public:
 
 private:
     //=========================================================================
+    float* m_pfSoundArray;
+    float m_fFreq;
     float m_fSampleRate;
     int m_iNumChannels;
+
     juce::AudioBuffer<float> audioBuffer; //for temporary storage and processing
-    juce::Random random; //for noise synthesis
 
     // Modules
     FilterComponent* filt;
+    KarplusStrong* KS;
     ReverbComponent* revrb;
+    juce::KeyPress key;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (AudioProcessingComponent)
 };
