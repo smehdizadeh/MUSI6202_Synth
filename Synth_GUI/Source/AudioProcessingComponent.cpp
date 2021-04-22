@@ -95,7 +95,7 @@ void AudioProcessingComponent::getNextAudioBlock(const juce::AudioSourceChannelI
     filt->processMovingAvgFilt(p, p, bufferToFill.numSamples, filt->GetCutoffFreq(), 0.9); //LP Filter noise
 
     // CONVOLUTIONAL REVERB TESTING
-    revrb->processConvReverb(p, p, bufferToFill.numSamples);
+    //revrb->processConvReverb(p, p, bufferToFill.numSamples);
 
     // send to the Juce output buffer (ALL CHANNELS)
     for (auto channel = 0; channel < bufferToFill.buffer->getNumChannels(); ++channel)
