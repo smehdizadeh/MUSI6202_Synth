@@ -4,6 +4,9 @@
               addUsingNamespaceToJuceHeader="0" displaySplashScreen="1" jucerFormatVersion="1">
   <MAINGROUP id="XrR8FM" name="Synth_GUI">
     <GROUP id="{C3061199-D255-0FA8-01B0-18BF710132E3}" name="Source">
+      <FILE id="liEcUt" name="impulseAssets.cpp" compile="1" resource="0"
+            file="Source/impulseAssets.cpp"/>
+      <FILE id="dHBPIN" name="impulseAssets.h" compile="0" resource="0" file="Source/impulseAssets.h"/>
       <FILE id="DGzDwj" name="ReverbComponent.h" compile="0" resource="0"
             file="Source/ReverbComponent.h"/>
       <FILE id="Ho3by4" name="ModEffectsComponent.h" compile="0" resource="0"

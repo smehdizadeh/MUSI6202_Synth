@@ -11,6 +11,7 @@
 #pragma once
 
 #include <JuceHeader.h>
+#include <complex>
 #include "RingBuffer.h"
 
 //==============================================================================
@@ -76,6 +77,14 @@ public:
         //transform to frequency domain
         forwardFFT.perform(m_pfIncomingBlocks, m_pfFFTData, false);
 
+        //normalize???
+        /*
+        for (int i = 0; i < 2 * m_fftSize; i++)
+        {
+            m_pfFFTData[i] /= m_fftSize;
+        }
+        */
+
         //....
 
         //transform back to time domain
@@ -84,7 +93,7 @@ public:
         //copy to output audio buffer
         for (int i = 0; i < iBufferSize; i++)
         {
-            pfOutputBuffer[i] = static_cast<float>(m_pfOutput[i]);
+            pfOutputBuffer[i] = abs(m_pfOutput[i]);
         }
 
         //shift most recent block over
@@ -108,6 +117,8 @@ private:
                                                    //last 64 samples will always be zero padded
     juce::dsp::Complex<float>* m_pfFFTData;        //where FFT transformed data is stored (2* IncomingBlock array)
     juce::dsp::Complex<float>* m_pfOutput;         //where inverse FFT output is stored
+
+    juce::File impulseResp;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (ReverbComponent)
 };
