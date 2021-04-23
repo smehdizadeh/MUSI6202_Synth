@@ -12,6 +12,7 @@
 
 #include <JuceHeader.h>
 #include "FilterComponent.h"
+#include "ModEffectsComponent.h"
 
 //==============================================================================
 /*
@@ -40,6 +41,7 @@ private:
 
     // Modules
     FilterComponent* filt;
+    ModEffectsComponent* mod;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (AudioProcessingComponent)
 };

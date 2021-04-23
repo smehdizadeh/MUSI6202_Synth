@@ -15,7 +15,8 @@
 AudioProcessingComponent::AudioProcessingComponent() :
     m_fSampleRate(0),
     m_iNumChannels(2),
-    filt(0)
+    filt(0),
+    mod(0)
 {
     // In your constructor, you should add any child components, and
     // initialise any special settings that your component needs.
@@ -28,6 +29,7 @@ AudioProcessingComponent::~AudioProcessingComponent()
     shutdownAudio();
     audioBuffer.clear();
     filt = 0;
+    mod = 0;
 }
 
 //=============================================================================
@@ -40,6 +42,7 @@ void AudioProcessingComponent::prepareToPlay(int samplesPerBlockExpected, double
 
     m_fSampleRate = sampleRate;
     filt = new FilterComponent(m_fSampleRate);
+    mod = new ModEffectsComponent(m_fSampleRate);
 
 }
 
@@ -58,6 +61,7 @@ void AudioProcessingComponent::getNextAudioBlock(const juce::AudioSourceChannelI
     // CUTOFF RANGE IS 22 Hz - 20 kHz, GAIN RANGE IS 0.0 - 1.0
     //filt->processMovingAvgFilt(p, p, bufferToFill.numSamples, 1000.0, 0.9); //LP Filter noise
     filt->processCombFilter(p, p, bufferToFill.numSamples, 5); //comb filter - I want a slider to change the delay time!
+    mod->processVibrato(p, p, bufferToFill.numSamples, 1);
     // send to the Juce output buffer (ALL CHANNELS)
 
     for (auto channel = 0; channel < bufferToFill.buffer->getNumChannels(); ++channel)
