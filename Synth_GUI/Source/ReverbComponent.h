@@ -12,7 +12,6 @@
 
 #include <JuceHeader.h>
 #include <complex>
-#include "RingBuffer.h"
 
 //==============================================================================
 /*

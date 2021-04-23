@@ -14,11 +14,11 @@
 
 //==============================================================================
 AudioProcessingComponent::AudioProcessingComponent() :
-    KS(0),
     m_pfSoundArray(0),
     m_fFreq(0),
     m_fSampleRate(0),
     m_iNumChannels(2),
+    KS(0),
     filt(0),
     revrb(0),
     key(0)
@@ -31,11 +31,16 @@ AudioProcessingComponent::AudioProcessingComponent() :
 
 AudioProcessingComponent::~AudioProcessingComponent()
 {
-    shutdownAudio();  
-    delete[] m_pfSoundArray;
-    KS->~KarplusStrong();
+    shutdownAudio();
     audioBuffer.clear();
+
+    delete[] m_pfSoundArray;
+
+    KS->~KarplusStrong();
+    KS = 0;
+    filt->~FilterComponent();
     filt = 0;
+    revrb->~ReverbComponent();
     revrb = 0;
 }
 
@@ -44,17 +49,16 @@ AudioProcessingComponent::~AudioProcessingComponent()
 void AudioProcessingComponent::prepareToPlay(int samplesPerBlockExpected, double sampleRate)
 {
     m_fSampleRate = sampleRate;
-    filt = new FilterComponent(m_fSampleRate);
-    revrb = new ReverbComponent(m_fSampleRate, samplesPerBlockExpected);
-    // Code for Karplus Strong Algorithm
+    filt = new FilterComponent(m_fSampleRate); //create filter module
+    revrb = new ReverbComponent(m_fSampleRate, samplesPerBlockExpected); //create reverb module
 
-    m_fFreq = 440;
-    KS = new KarplusStrong(m_fSampleRate);
+    // Code for Karplus Strong Algorithm
+    m_fFreq = 440; //KS frequency
+    KS = new KarplusStrong(m_fSampleRate); //create KS generator
     KS->CreateOutput();
-    m_pfSoundArray = new float[m_fSampleRate];
+    m_pfSoundArray = new float[m_fSampleRate]; //KS buffer
     KS->GetKarpArray(m_pfSoundArray);
 
-    // End code for Karplus Strong Algorithm
   
     audioBuffer.setSize(1, samplesPerBlockExpected); //mono working buffer
     audioBuffer.clear();
@@ -92,10 +96,10 @@ void AudioProcessingComponent::getNextAudioBlock(const juce::AudioSourceChannelI
     }
 
     // CUTOFF RANGE IS 22 Hz - 20 kHz, GAIN RANGE IS 0.0 - 1.0
-    filt->processMovingAvgFilt(p, p, bufferToFill.numSamples, filt->GetCutoffFreq(), 0.9); //LP Filter noise
+    filt->processMovingAvgFilt(p, p, bufferToFill.numSamples, filt->GetCutoffFreq(), 0.9); //LP Filter
 
     // CONVOLUTIONAL REVERB TESTING
-    //revrb->processConvReverb(p, p, bufferToFill.numSamples);
+    revrb->processConvReverb(p, p, bufferToFill.numSamples);
 
     // send to the Juce output buffer (ALL CHANNELS)
     for (auto channel = 0; channel < bufferToFill.buffer->getNumChannels(); ++channel)
