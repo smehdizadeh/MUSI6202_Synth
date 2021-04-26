@@ -27,8 +27,9 @@ public:
     {
         auto& conv = fxChain.get<convolutionIndex>(); //access the convolution inside the processor chain
         //load the impulse response from assets (binary)
-        conv.loadImpulseResponse(impulseAssets::impulseresponse_wav, (size_t)impulseAssets::impulseresponse_wavSize, juce::dsp::Convolution::Stereo::no, juce::dsp::Convolution::Trim::no, (size_t)impulseAssets::impulseresponse_wavSize);
-        
+        //conv.loadImpulseResponse(impulseAssets::impulseresponse_wav, (size_t)impulseAssets::impulseresponse_wavSize, juce::dsp::Convolution::Stereo::no, juce::dsp::Convolution::Trim::no, (size_t)impulseAssets::impulseresponse_wavSize);
+        conv.loadImpulseResponse(impulseAssets::RoomHuge_wav, (size_t)impulseAssets::RoomHuge_wavSize, juce::dsp::Convolution::Stereo::no, juce::dsp::Convolution::Trim::no, (size_t)impulseAssets::RoomHuge_wavSize);
+
         //specs for convolution
         spec.sampleRate = m_fSampleRate;
         spec.numChannels = 1;
