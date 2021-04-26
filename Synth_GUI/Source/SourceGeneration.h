@@ -11,6 +11,7 @@
 #pragma once
 #include <JuceHeader.h>
 #include "RingBuffer.h"
+#include <math.h>
 
 class KarplusStrong
 {
@@ -72,19 +73,6 @@ public:
         {
             m_pfInputArray[i] = random.nextFloat() * 0.25f - 0.125f;
         }
-
-        /*for (int i = 0; i < sampleRate; i++)
-        {
-            if (i < delayLength)
-            {
-                karpArray[i] = inputArray[i];
-            }
-
-            else
-            {
-                karpArray[i] = attenuation * karpArray[i - delayLength];
-            }
-        }*/
     }
 
 private:
@@ -98,51 +86,69 @@ private:
     
 };
 
-//class Additive
-//{
-//public:
-//    Additive(float frq, float level, double fs) :
-//        m_fFrq(0),
-//        m_fLevel(0),
-//        m_WaveShape(kSine)
-//    {
-//        addBuff = new RingBuffer((int)fs);
-//    }
-//
-//    ~Additive()
-//    {
-//
-//    }
-//
-//    void SetFrq(float frq)
-//    {
-//        m_fFrq = frq;
-//    }
-//
-//    void SetLevel(float level)
-//    {
-//        m_fLevel = level;
-//
-//        if (m_fLevel > 1)
-//        {
-//            m_fLevel = 1;
-//        }
-//    }
-//
-//    enum Shape
-//    {
-//        kSine,
-//        kSquare,
-//        kNumShapes
-//    };
-//
-//private:
-//    float m_fFrq;
-//    float m_fLevel;
-//    Shape m_WaveShape;
-//
-//    RingBuffer* addBuff;
-//};
+class Additive
+{
+public:
+    Additive(float frq) :
+        m_fFrq(frq),
+        m_fLevel(0)
+    {
+        //addBuff = new RingBuffer((int)fs);
+    }
+
+    ~Additive()
+    {
+
+    }
+
+    void SetFrq(float frq)
+    {
+        m_fFrq = frq;
+    }
+
+    void SetLevel(float level)
+    {
+        m_fLevel = level;
+
+        if (m_fLevel > 1)
+        {
+            m_fLevel = 1;
+        }
+    }
+
+    /*enum Shape
+    {
+        kSine,
+        kSquare,
+        kNumShapes
+    };*/
+
+    void GetSample(double& waveSamp, double& time, double fs, double amp, double frq, double numHarm)
+    {
+        waveSamp = 0;
+        if (time >= 1)
+        {
+            time = 0;
+        }
+
+        for (int i = 1; i <= numHarm; i++)
+        {
+            waveSamp += amp * sin(2 * pi * time * frq * (__int64)(2 * i - 1));
+            waveSamp /= (__int64)(2 * i - 1);
+        }
+
+        waveSamp *= 4 / pi;
+        time += 1 / fs;
+    }
+
+private:
+    const double pi = 3.141592;
+    float m_fFrq;
+    float m_fLevel;
+    //Shape m_WaveShape;
+
+    //RingBuffer* addBuff;
+};
 
 //class Granular :: Unused
 //{

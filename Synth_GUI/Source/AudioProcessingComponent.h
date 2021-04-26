@@ -29,12 +29,17 @@ public:
     void getNextAudioBlock(const juce::AudioSourceChannelInfo& bufferToFill) override;
     void releaseResources() override;
 
+    enum Source;
+    void ChangeSource(Source source);
+
 private:
     //=========================================================================
     float* m_pfSoundArray;
     float m_fFreq;
     float m_fSampleRate;
+    int m_fSampExpect;
     int m_iNumChannels;
+    Source m_kSource;
 
     juce::AudioBuffer<float> audioBuffer; //for temporary storage and processing
 
@@ -42,6 +47,9 @@ private:
     FilterComponent* filt;
     KarplusStrong* KS;
     juce::KeyPress key;
-
+    Additive* Add;
+    double m_dWaveSamp;
+    double m_dTime;
+    
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (AudioProcessingComponent)
 };
