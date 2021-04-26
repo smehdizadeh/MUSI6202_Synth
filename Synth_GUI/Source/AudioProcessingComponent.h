@@ -38,12 +38,14 @@ private:
     int m_iNumChannels;
 
     juce::AudioBuffer<float> audioBuffer; //for temporary storage and processing
+    juce::KeyPress key; //UI keyboard presses
+    juce::ADSR env; //envelope to apply to sound gen
 
     // Modules
     FilterComponent* filt;
     KarplusStrong* KS;
     ReverbComponent* revrb;
-    juce::KeyPress key;
+    
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (AudioProcessingComponent)
 };

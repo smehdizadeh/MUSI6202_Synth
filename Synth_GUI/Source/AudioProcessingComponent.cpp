@@ -20,8 +20,7 @@ AudioProcessingComponent::AudioProcessingComponent() :
     m_iNumChannels(2),
     KS(0),
     filt(0),
-    revrb(0),
-    key(0)
+    revrb(0)
 {
     // In your constructor, you should add any child components, and
     // initialise any special settings that your component needs.
@@ -42,6 +41,8 @@ AudioProcessingComponent::~AudioProcessingComponent()
     filt = 0;
     revrb->~ReverbComponent();
     revrb = 0;
+
+    env.reset();
 }
 
 
@@ -59,6 +60,14 @@ void AudioProcessingComponent::prepareToPlay(int samplesPerBlockExpected, double
     m_pfSoundArray = new float[m_fSampleRate]; //KS buffer
     KS->GetKarpArray(m_pfSoundArray);
 
+    // ADSR
+    env.setSampleRate(sampleRate);
+    juce::ADSR::Parameters params;
+    params.attack = 0;
+    params.decay = 0;
+    params.sustain = 1.0;
+    params.release = 0.5;
+    env.setParameters(params);
   
     audioBuffer.setSize(1, samplesPerBlockExpected); //mono working buffer
     audioBuffer.clear();
@@ -68,7 +77,9 @@ void AudioProcessingComponent::prepareToPlay(int samplesPerBlockExpected, double
 
 void AudioProcessingComponent::getNextAudioBlock(const juce::AudioSourceChannelInfo& bufferToFill)
 {
-    // EVERYTHING DONE IN MONO AND THEN COPIED TO ADDITIONAL CHANNELS
+    // ***** EVERYTHING DONE IN MONO AND THEN COPIED TO ADDITIONAL CHANNELS ******
+
+    // Filter controls
     if (key.isKeyCurrentlyDown(juce::KeyPress::upKey))
     {
         filt->AdjustCutoffFreq(juce::KeyPress::upKey);
@@ -84,23 +95,29 @@ void AudioProcessingComponent::getNextAudioBlock(const juce::AudioSourceChannelI
 
     for (auto sample = 0; sample < bufferToFill.numSamples; ++sample)
     {
+        p[sample] = m_pfSoundArray[KS->GetKarpWriteIdx()]; //get sound from source gen
+
+        //apply ADSR accordingly
         if (key.isKeyCurrentlyDown(juce::KeyPress::spaceKey))
         {
-            p[sample] = m_pfSoundArray[KS->GetKarpWriteIdx()];
+            env.noteOn();
         }
         else
         {
-            p[sample] = 0;
+            env.noteOff();
         }
         KS->SetKarpWriteIdx((int)(m_fSampleRate/m_fFreq));
     }
+    env.applyEnvelopeToBuffer(audioBuffer, 0, bufferToFill.numSamples);
 
     // CUTOFF RANGE IS 22 Hz - 20 kHz, GAIN RANGE IS 0.0 - 1.0
     filt->processMovingAvgFilt(p, p, bufferToFill.numSamples, filt->GetCutoffFreq(), 0.9); //LP Filter
 
-    // CONVOLUTIONAL REVERB TESTING
-    revrb->renderNextSubBlock(audioBuffer, 0, bufferToFill.numSamples);
-    //revrb->processConvReverb(p, p, bufferToFill.numSamples, true);
+    // CONVOLUTIONAL REVERB TESTING.. PRESS TAB TO TOGGLE REVERB ON/OFF
+    if (key.isKeyCurrentlyDown(juce::KeyPress::tabKey))
+    {
+        revrb->renderNextSubBlock(audioBuffer, 0, bufferToFill.numSamples);
+    }
 
     // send to the Juce output buffer (ALL CHANNELS)
     for (auto channel = 0; channel < bufferToFill.buffer->getNumChannels(); ++channel)

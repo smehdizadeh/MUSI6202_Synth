@@ -88,17 +88,17 @@ public:
     {
         if (keyPressed == juce::KeyPress::downKey)
         {
-            if (m_fCutoffFrq - 1 >= 22.0) //Check lower bound
+            if (m_fCutoffFrq - 1.0 >= 22.0) //Check lower bound
             {
-                m_fCutoffFrq -= 1;
+                m_fCutoffFrq -= 1.0;
             }
         }
 
         else if (keyPressed == juce::KeyPress::upKey)
         {
-            if (m_fCutoffFrq + 1 <= 20000.0)
+            if (m_fCutoffFrq + 1.0 <= 20000.0)
             {
-                m_fCutoffFrq += 1;
+                m_fCutoffFrq += 1.0;
             }
         }
     }
