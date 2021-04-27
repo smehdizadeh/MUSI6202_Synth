@@ -23,6 +23,7 @@ public:
     FilterComponent(float fSampleRate) :
         m_fSampleRate(fSampleRate),
         m_iDelayInSamples(0),
+        m_fCutoffFrq(1000),
         m_iBufSize(1000) //necessary size for moving average filt
     {
         buf = new RingBuffer(m_iBufSize);
@@ -32,6 +33,7 @@ public:
     {
         m_fSampleRate = 0;
         m_iDelayInSamples = 0;
+        m_fCutoffFrq = 0;
 
         delete buf;
         m_iBufSize = 0;
@@ -90,10 +92,34 @@ public:
 
     }
 
+    float GetCutoffFreq()
+    {
+        return m_fCutoffFrq;
+    }
+
+    void AdjustCutoffFreq(const int keyPressed) //Function mainly for testing purposes
+    {
+        if (keyPressed == juce::KeyPress::downKey)
+        {
+            if (m_fCutoffFrq - 1 >= 22.0) //Check lower bound
+            {
+                m_fCutoffFrq -= 1;
+            }
+        }
+
+        else if (keyPressed == juce::KeyPress::upKey)
+        {
+            if (m_fCutoffFrq + 1 <= 20000.0)
+            {
+                m_fCutoffFrq += 1;
+            }
+        }
+    }
+
 private:
     //=========================================================================
     float m_fSampleRate; //from APC
-
+    float m_fCutoffFrq;
     int m_iDelayInSamples; //for Comb Filter...from user GUI
 
     RingBuffer* buf;

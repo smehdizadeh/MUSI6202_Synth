@@ -11,8 +11,8 @@
 #pragma once
 
 #include <JuceHeader.h>
+#include "SourceGeneration.h"
 #include "FilterComponent.h"
-#include "ModEffectsComponent.h"
 
 //==============================================================================
 /*
@@ -31,17 +31,17 @@ public:
 
 private:
     //=========================================================================
+    float* m_pfSoundArray;
+    float m_fFreq;
     float m_fSampleRate;
     int m_iNumChannels;
+
     juce::AudioBuffer<float> audioBuffer; //for temporary storage and processing
-    juce::Random random; //for noise synthesis
-    // define the adsr juce class
-    juce::ADSR adsr;
-    juce::ADSR::Parameters adsrParams;
 
     // Modules
     FilterComponent* filt;
-    ModEffectsComponent* mod;
+    KarplusStrong* KS;
+    juce::KeyPress key;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (AudioProcessingComponent)
 };
