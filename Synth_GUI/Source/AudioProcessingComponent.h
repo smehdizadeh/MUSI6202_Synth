@@ -51,7 +51,6 @@ private:
     KarplusStrong* KS;
     ReverbComponent* revrb;
 
-    juce::KeyPress key;
     Additive* Add;
     double m_dWaveSamp;
     double m_dTime;

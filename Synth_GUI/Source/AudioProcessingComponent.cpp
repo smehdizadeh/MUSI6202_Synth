@@ -113,12 +113,14 @@ void AudioProcessingComponent::getNextAudioBlock(const juce::AudioSourceChannelI
         //apply ADSR accordingly
         if (key.isKeyCurrentlyDown(juce::KeyPress::spaceKey))
         {
+            //comment and uncomment blocks as desired to acheive different sound gens.
+
             //AdditiveBlock
-            Add->GetSample(m_dWaveSamp, m_dTime, m_fSampleRate, 1, 220, 5); // 3rd and four
-            p[sample] = m_dWaveSamp;
+            //Add->GetSample(m_dWaveSamp, m_dTime, m_fSampleRate, 1, 220, 5); //args 4,5,6: amplitude, frq, numHarmonics
+            //p[sample] = m_dWaveSamp;
 
             //KarplusBlock
-            //p[sample] = m_pfSoundArray[KS->GetKarpWriteIdx()];
+            p[sample] = m_pfSoundArray[KS->GetKarpWriteIdx()];
 
             env.noteOn();
         }
