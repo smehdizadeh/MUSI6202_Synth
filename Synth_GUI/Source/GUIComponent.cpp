@@ -16,6 +16,18 @@ GUIComponent::GUIComponent(AudioProcessingComponent& c) : apc(c) //this is how w
     // initialise any special settings that your component needs.
     addAndMakeVisible(dummySlider);
     dummySlider.setRange(0, 100); //doesn't do anything, just to test the gui
+
+    //for configuring sample rate
+    addAndMakeVisible(chooseSampRate);
+    chooseSampRate.setFont(juce::Font{ 16.0f });
+    addAndMakeVisible(samplerateMenu);
+    samplerateMenu.addItem("48 kHz", 1);
+    samplerateMenu.addItem("44.1 kHz", 2);
+    samplerateMenu.addItem("22.05 kHz", 3);
+    samplerateMenu.addItem("16 kHz", 4);
+
+    samplerateMenu.onChange = [this] {samplerateChanged(); };
+    samplerateMenu.setSelectedId(1); //default 48k
 }
 
 GUIComponent::~GUIComponent()
@@ -46,5 +58,24 @@ void GUIComponent::resized()
 {
     // This method is where you should set the bounds of any child
     // components that your component contains..
-    dummySlider.setBounds(10, 10, getWidth() - 20, 20);
+    chooseSampRate.setBounds(10, 10, getWidth() - 20, 20);
+    samplerateMenu.setBounds(10, 40, 100, 20);
+    dummySlider.setBounds(10, 70, getWidth() - 20, 20);
+}
+
+void GUIComponent::samplerateChanged()
+{
+    switch (samplerateMenu.getSelectedId())
+    {
+    case 1:
+        //48k
+    case 2:
+        //44.1k
+    case 3:
+        //22.05k
+    case 4:
+        //16k
+    default:
+        //48k
+    }
 }
