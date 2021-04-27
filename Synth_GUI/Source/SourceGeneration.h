@@ -133,8 +133,10 @@ public:
 
         for (int i = 1; i <= numHarm; i++)
         {
-            waveSamp += amp * sin(2 * pi * time * frq * (__int64)(2 * i - 1));
-            waveSamp /= (__int64)(2 * i - 1);
+            double temp = 0;
+            temp += amp * sin(2 * pi * time * frq * (__int64)(2 * i - 1));
+            temp /= (__int64)(2 * i - 1);
+            waveSamp += temp;
         }
 
         waveSamp *= 4 / pi;

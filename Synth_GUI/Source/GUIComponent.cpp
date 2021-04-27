@@ -15,11 +15,16 @@ GUIComponent::GUIComponent(AudioProcessingComponent& c) : apc(c) //this is how w
     // In your constructor, you should add any child components, and
     // initialise any special settings that your component needs.
     addAndMakeVisible(dummySlider);
+    addAndMakeVisible(sourceBtn);
+    sourceBtn.setButtonText("Next Source");
+    sourceBtn.onClick = [this] { sourceBtnClicked(); };
+
     dummySlider.setRange(0, 100); //doesn't do anything, just to test the gui
 }
 
 GUIComponent::~GUIComponent()
 {
+
 }
 
 //==============================================================================
@@ -47,4 +52,10 @@ void GUIComponent::resized()
     // This method is where you should set the bounds of any child
     // components that your component contains..
     dummySlider.setBounds(10, 10, getWidth() - 20, 20);
+    sourceBtn.setBounds(30, 30, getWidth() - 20, 20);
+}
+
+void GUIComponent::sourceBtnClicked()
+{
+    apc.NextSource();
 }

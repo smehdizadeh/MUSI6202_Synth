@@ -29,18 +29,46 @@ public:
     void prepareToPlay(int samplesPerBlockExpected, double sampleRate) override;
     void getNextAudioBlock(const juce::AudioSourceChannelInfo& bufferToFill) override;
     void releaseResources() override;
+    double GetInput();
+    double SetFrq(double);
 
-    enum Source;
-    void ChangeSource(Source source);
+    enum Source
+    {
+        karplus,
+        square,
+        numSources
+    };
+
+    enum Note
+    {
+        c = 122,
+        cs = 115,
+        d = 120,
+        ds = 100,
+        e = 99,
+        f = 118,
+        fs = 103,
+        g = 98,
+        gs = 104,
+        a = 110,
+        as = 106,
+        b = 109,
+        cOct = 44,
+        numNotes = 13
+    };
+
+    void NextSource();
 
 private:
     //=========================================================================
     float* m_pfSoundArray;
-    float m_fFreq;
+    double m_fFreq;
     float m_fSampleRate;
     int m_fSampExpect;
     int m_iNumChannels;
+    bool m_bPlaying;
     Source m_kSource;
+    Note m_kNote;
 
     juce::AudioBuffer<float> audioBuffer; //for temporary storage and processing
     juce::KeyPress key; //UI keyboard presses
@@ -51,7 +79,6 @@ private:
     KarplusStrong* KS;
     ReverbComponent* revrb;
 
-    juce::KeyPress key;
     Additive* Add;
     double m_dWaveSamp;
     double m_dTime;

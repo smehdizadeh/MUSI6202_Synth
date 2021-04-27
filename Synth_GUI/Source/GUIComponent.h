@@ -24,10 +24,13 @@ public:
     //==========================================================================
     void paint(juce::Graphics&) override;
     void resized() override;
+    void sourceBtnClicked();
+
 
 private:
     //==========================================================================
     juce::Slider dummySlider; //doesn't do anything, just to test the gui
+    juce::TextButton sourceBtn;
     AudioProcessingComponent& apc;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(GUIComponent)
