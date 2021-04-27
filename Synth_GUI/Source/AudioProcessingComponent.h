@@ -13,6 +13,7 @@
 #include <JuceHeader.h>
 #include "SourceGeneration.h"
 #include "FilterComponent.h"
+#include "ReverbComponent.h"
 
 //==============================================================================
 /*
@@ -42,10 +43,14 @@ private:
     Source m_kSource;
 
     juce::AudioBuffer<float> audioBuffer; //for temporary storage and processing
+    juce::KeyPress key; //UI keyboard presses
+    juce::ADSR env; //envelope to apply to sound gen
 
     // Modules
     FilterComponent* filt;
     KarplusStrong* KS;
+    ReverbComponent* revrb;
+
     juce::KeyPress key;
     Additive* Add;
     double m_dWaveSamp;
