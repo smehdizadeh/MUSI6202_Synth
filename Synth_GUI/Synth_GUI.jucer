@@ -4,6 +4,11 @@
               addUsingNamespaceToJuceHeader="0" displaySplashScreen="1" jucerFormatVersion="1">
   <MAINGROUP id="XrR8FM" name="Synth_GUI">
     <GROUP id="{C3061199-D255-0FA8-01B0-18BF710132E3}" name="Source">
+      <FILE id="liEcUt" name="impulseAssets.cpp" compile="1" resource="0"
+            file="Source/impulseAssets.cpp"/>
+      <FILE id="dHBPIN" name="impulseAssets.h" compile="0" resource="0" file="Source/impulseAssets.h"/>
+      <FILE id="DGzDwj" name="ReverbComponent.h" compile="0" resource="0"
+            file="Source/ReverbComponent.h"/>
       <FILE id="DAr7A9" name="SourceGeneration.h" compile="0" resource="0"
             file="Source/SourceGeneration.h"/>
       <FILE id="Ho3by4" name="ModEffectsComponent.h" compile="0" resource="0"
@@ -43,6 +48,7 @@
         <MODULEPATH id="juce_graphics" path="../../../../../Desktop/JUCE/modules"/>
         <MODULEPATH id="juce_gui_basics" path="../../../../../Desktop/JUCE/modules"/>
         <MODULEPATH id="juce_gui_extra" path="../../../../../Desktop/JUCE/modules"/>
+        <MODULEPATH id="juce_dsp" path="../../../../../Desktop/JUCE/modules"/>
       </MODULEPATHS>
     </VS2019>
     <XCODE_MAC targetFolder="Builds/MacOSX">
@@ -62,6 +68,7 @@
         <MODULEPATH id="juce_audio_formats"/>
         <MODULEPATH id="juce_audio_devices"/>
         <MODULEPATH id="juce_audio_basics"/>
+        <MODULEPATH id="juce_dsp" path="../../../../../Desktop/JUCE/modules"/>
       </MODULEPATHS>
     </XCODE_MAC>
   </EXPORTFORMATS>
@@ -73,6 +80,7 @@
     <MODULE id="juce_audio_utils" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
     <MODULE id="juce_core" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
     <MODULE id="juce_data_structures" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_dsp" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
     <MODULE id="juce_events" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
     <MODULE id="juce_graphics" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
     <MODULE id="juce_gui_basics" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
