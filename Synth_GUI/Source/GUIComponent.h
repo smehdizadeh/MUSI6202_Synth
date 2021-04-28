@@ -25,7 +25,8 @@ public:
     //==========================================================================
     void paint(juce::Graphics&) override;
     void resized() override;
-    void sourceBtnClicked(); // Source button clicked.
+
+    void sourceBtnClicked(); // Source button clicked. Cycle thru possible synth sources
     bool keyPressed(const juce::KeyPress&, juce::Component*) override; // Used to detect key presses
     bool keyStateChanged(bool, Component*) override; //Used to detect key releases
 

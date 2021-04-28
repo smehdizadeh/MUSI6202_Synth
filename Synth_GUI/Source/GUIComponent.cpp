@@ -75,11 +75,11 @@ void GUIComponent::resized()
 {
     // This method is where you should set the bounds of any child
     // components that your component contains..
-    dummySlider.setBounds(10, 10, getWidth() - 20, 20);
-    sourceBtn.setBounds(30, 30, getWidth() - 20, 20);
     chooseSampRate.setBounds(10, 10, getWidth() - 20, 20);
     samplerateMenu.setBounds(10, 40, 100, 20);
-    dummySlider.setBounds(10, 70, getWidth() - 20, 20);
+    sourceBtn.setBounds(30, 70, getWidth() - 60, 20);
+
+    dummySlider.setBounds(10, 100, getWidth() - 20, 20);
 }
 
 bool GUIComponent::keyPressed(const juce::KeyPress& key, juce::Component* originatingComponent)

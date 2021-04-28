@@ -75,6 +75,7 @@ AudioProcessingComponent::~AudioProcessingComponent()
 void AudioProcessingComponent::prepareToPlay(int samplesPerBlockExpected, double sampleRate)
 {
     m_fSampleRate = sampleRate;
+    m_fOutputSampRate = sampleRate;
 
     filt = new FilterComponent(m_fSampleRate); //create filter module
     revrb = new ReverbComponent(m_fSampleRate, samplesPerBlockExpected); //create reverb module
@@ -327,7 +328,7 @@ void AudioProcessingComponent::changeSampleRate(float* pfAudio, int numSamples)
     {
         //apply anti-aliasing filter
         antiAlias.reset();
-        antiAlias.setCoefficients(juce::IIRCoefficients::makeLowPass(m_fSampleRate, m_fOutputSampRate / 2.0));
+        antiAlias.setCoefficients(juce::IIRCoefficients::makeLowPass(m_fSampleRate, m_fOutputSampRate * 0.5));
         antiAlias.processSamples(pfAudio, numSamples);
 
         if (m_fOutputSampRate == 16000.0) //then check for the integer factor case (16k)

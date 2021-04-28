@@ -29,9 +29,10 @@ public:
     void prepareToPlay(int samplesPerBlockExpected, double sampleRate) override;
     void getNextAudioBlock(const juce::AudioSourceChannelInfo& bufferToFill) override;
     void releaseResources() override;
-    void SetFrq(double);
-    void GetKey(int);
-    void ToggleSynth();
+
+    void SetFrq(double); //only ever called within APC? Then this should be private
+    void GetKey(int); //called by GUIComponent when user presses a key
+    void ToggleSynth(); //called by GUIComponent when user releases a key
 
     enum Source
     {
@@ -59,7 +60,7 @@ public:
         numNotes = 13
     };
 
-    void NextSource();
+    void NextSource(); //called by GUIComponent when user changes synth sound source/osc
     void setSampleRate(float newSampRate); //called by GUIComponent when user changes samp rate
 
 
