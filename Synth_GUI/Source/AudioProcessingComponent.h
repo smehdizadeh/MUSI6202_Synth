@@ -29,30 +29,32 @@ public:
     void prepareToPlay(int samplesPerBlockExpected, double sampleRate) override;
     void getNextAudioBlock(const juce::AudioSourceChannelInfo& bufferToFill) override;
     void releaseResources() override;
-    double GetInput();
-    double SetFrq(double);
+    void SetFrq(double);
+    void GetKey(int);
+    void ToggleSynth();
 
     enum Source
     {
         karplus,
         square,
+        triangle,
         numSources
     };
 
     enum Note
     {
-        c = 122,
-        cs = 115,
-        d = 120,
-        ds = 100,
-        e = 99,
-        f = 118,
-        fs = 103,
-        g = 98,
-        gs = 104,
-        a = 110,
-        as = 106,
-        b = 109,
+        c = 90,
+        cs = 83,
+        d = 88,
+        ds = 68,
+        e = 67,
+        f = 86,
+        fs = 71,
+        g = 66,
+        gs = 72,
+        a = 78,
+        as = 74,
+        b = 77,
         cOct = 44,
         numNotes = 13
     };
@@ -62,10 +64,11 @@ public:
 private:
     //=========================================================================
     float* m_pfSoundArray;
-    double m_fFreq;
+    double m_dFreq;
     float m_fSampleRate;
     int m_fSampExpect;
     int m_iNumChannels;
+    int m_iNumKeysDown; // used for synth I/O logic
     bool m_bPlaying;
     Source m_kSource;
     Note m_kNote;

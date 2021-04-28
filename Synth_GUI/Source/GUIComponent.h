@@ -10,11 +10,12 @@
 
 #include <JuceHeader.h>
 #include "AudioProcessingComponent.h"
+#include <iostream>
 
 //==============================================================================
 /*
 */
-class GUIComponent : public juce::Component
+class GUIComponent : public juce::Component, public juce::KeyListener
 {
 public:
     //==========================================================================
@@ -25,6 +26,8 @@ public:
     void paint(juce::Graphics&) override;
     void resized() override;
     void sourceBtnClicked();
+    bool keyPressed(const juce::KeyPress&, juce::Component*) override;
+    bool keyStateChanged(bool, Component*) override;
 
 
 private:

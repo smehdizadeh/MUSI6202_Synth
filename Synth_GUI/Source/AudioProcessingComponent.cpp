@@ -11,13 +11,24 @@
 #include <JuceHeader.h>
 #include "AudioProcessingComponent.h"
 #include <cmath>
+#include <windows.h> //For Debug macro
+#include <debugapi.h> //For Debug macro
+
+// Use DBOUT(args) to print to the VS console
+#define DBOUT(s)            \
+{                             \
+std::ostringstream os_;    \
+os_ << s;                   \
+OutputDebugString(os_.str().c_str()); \
+OutputDebugString("\n"); \
+}
 
 
 //==============================================================================
 AudioProcessingComponent::AudioProcessingComponent() :
     Add(0),
     m_pfSoundArray(0),
-    m_fFreq(0),
+    m_dFreq(0),
     m_fSampleRate(0),
     m_iNumChannels(2),
     KS(0),
@@ -27,7 +38,8 @@ AudioProcessingComponent::AudioProcessingComponent() :
     m_dTime(0),
     m_fSampExpect(0),
     revrb(0),
-    m_bPlaying(false)
+    m_bPlaying(false),
+    m_iNumKeysDown(0)
 {
     // In your constructor, you should add any child components, and
     // initialise any special settings that your component needs.
@@ -62,19 +74,17 @@ AudioProcessingComponent::~AudioProcessingComponent()
 void AudioProcessingComponent::prepareToPlay(int samplesPerBlockExpected, double sampleRate)
 {
     m_fSampleRate = sampleRate;
-    m_fSampExpect = samplesPerBlockExpected;
 
     filt = new FilterComponent(m_fSampleRate); //create filter module
     revrb = new ReverbComponent(m_fSampleRate, samplesPerBlockExpected); //create reverb module
 
-    // Code for Karplus Strong Algorithm
-    m_fFreq = 440; //KS frequency
+    // Code for Karplus Strong Algorithm 
     KS = new KarplusStrong(m_fSampleRate); //create KS generator
     KS->CreateOutput();
     m_pfSoundArray = new float[m_fSampleRate]; //KS buffer
     KS->GetKarpArray(m_pfSoundArray);
 
-    Add = new Additive(0);
+    Add = new Additive();
   
     //Envelope
     env.setSampleRate(sampleRate);
@@ -111,31 +121,38 @@ void AudioProcessingComponent::getNextAudioBlock(const juce::AudioSourceChannelI
 
     for (auto sample = 0; sample < bufferToFill.numSamples; ++sample)
     {
-        m_fFreq = GetInput();
-
-        //apply ADSR accordingly
-        if (m_bPlaying)
-        {
+        
+        
 
             //AdditiveBlock
             if (m_kSource == Source::square)
             {
-                Add->GetSample(m_dWaveSamp, m_dTime, m_fSampleRate, 1, GetInput(), 10); // 3rd and four
+                Add->GetSquareSamp(m_dWaveSamp, m_dTime, m_fSampleRate, 1, m_dFreq, 10); // 3rd and four
                 p[sample] = m_dWaveSamp;
             }
 
-            else 
+            else if (m_kSource == Source::karplus)
             {
-                //KarplusBlock
                 p[sample] = m_pfSoundArray[KS->GetKarpWriteIdx()];
             }
+
+            else if (m_kSource == Source::triangle)
+            {
+                Add->GetTriSamp(m_dWaveSamp, m_dTime, m_fSampleRate, 1, m_dFreq, 10); // 3rd and four
+                p[sample] = m_dWaveSamp;
+            }
+
+        //apply ADSR accordingly
+        if (m_bPlaying)
+        {
             env.noteOn();
         }
         else
         {
             env.noteOff();
         }
-        KS->SetKarpWriteIdx((int)(m_fSampleRate/m_fFreq));
+
+        KS->SetKarpWriteIdx((int)(m_fSampleRate/m_dFreq));
     }
     env.applyEnvelopeToBuffer(audioBuffer, 0, bufferToFill.numSamples);
 
@@ -160,70 +177,120 @@ void AudioProcessingComponent::releaseResources()
     
 }
 
-double AudioProcessingComponent::SetFrq(double m)
-{
-    m_bPlaying = true;
-    return pow(2, (m - 69) / 12) * 440;
-}
-
-double AudioProcessingComponent::GetInput()
+void AudioProcessingComponent::ToggleSynth()
 {
     if (key.isKeyCurrentlyDown((int)Note::c))
     {
-        return SetFrq(48);
+        
     }
     else if ((key.isKeyCurrentlyDown((int)Note::cs)))
     {
-        return SetFrq(49);
+
     }
     else if ((key.isKeyCurrentlyDown((int)Note::d)))
     {
-        return SetFrq(50);
+        
     }
     else if ((key.isKeyCurrentlyDown((int)Note::ds)))
     {
-        return SetFrq(51);
+        
     }
     else if ((key.isKeyCurrentlyDown((int)Note::e)))
     {
-        return SetFrq(52);
+        
     }
     else if ((key.isKeyCurrentlyDown((int)Note::f)))
     {
-        return SetFrq(53);
+        
     }
     else if ((key.isKeyCurrentlyDown((int)Note::fs)))
     {
-        return SetFrq(54);
+        
     }
     else if ((key.isKeyCurrentlyDown((int)Note::g)))
     {
-        return SetFrq(55);
+        
     }
     else if ((key.isKeyCurrentlyDown((int)Note::gs)))
     {
-        return SetFrq(56);
+        
     }
     else if ((key.isKeyCurrentlyDown((int)Note::a)))
     {
-        return SetFrq(57);
+        
     }
     else if ((key.isKeyCurrentlyDown((int)Note::as)))
     {
-        return SetFrq(58);
+        
     }
     else if ((key.isKeyCurrentlyDown((int)Note::b)))
     {
-        return SetFrq(59);
+        
     }
     else if ((key.isKeyCurrentlyDown((int)Note::cOct)))
     {
-        return SetFrq(60);
+        
     }
     else
     {
         m_bPlaying = false;
-        return 0;
+    }
+}
+
+void AudioProcessingComponent::SetFrq(double m)
+{
+    m_bPlaying = true;
+    m_iNumKeysDown += 1;
+    m_dFreq = pow(2, (m - 69) / 12) * 440;
+}
+
+
+void AudioProcessingComponent::GetKey(int press)
+{
+    switch (press)
+    {
+    case (int)Note::c:
+        SetFrq(48);
+        break;
+    case (int)Note::cs:
+        SetFrq(49);
+        break;
+    case (int)Note::d:
+        SetFrq(50);
+        break;
+    case (int)Note::ds:
+        SetFrq(51);
+        break;
+    case (int)Note::e:
+        SetFrq(52);
+        break;
+    case (int)Note::f:
+        SetFrq(53);
+        break;
+    case (int)Note::fs:
+        SetFrq(54);
+        break;
+    case (int)Note::g:
+        SetFrq(55);
+        break;
+    case (int)Note::gs:
+        SetFrq(56);
+        break;
+    case (int)Note::a:
+        SetFrq(57);
+        break;
+    case (int)Note::as:
+        SetFrq(58);
+        break;
+    case (int)Note::b:
+        SetFrq(59);
+        break;
+    case (int)Note::cOct:
+        SetFrq(60);
+        break;
+    default:
+        m_bPlaying = false;
+        break;
     }
 }
 
@@ -234,6 +301,10 @@ void AudioProcessingComponent::NextSource()
         m_kSource = Source::karplus;
     }
     else if (m_kSource == Source::karplus)
+    {
+        m_kSource = Source::triangle;
+    }
+    else if (m_kSource == Source::triangle)
     {
         m_kSource = Source::square;
     }
