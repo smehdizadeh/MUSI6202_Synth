@@ -30,10 +30,16 @@ public:
     bool keyStateChanged(bool, Component*) override;
 
 
+    void samplerateChanged(); //handles changes to the sample rate selection menu
+
 private:
     //==========================================================================
     juce::Slider dummySlider; //doesn't do anything, just to test the gui
     juce::TextButton sourceBtn;
+    
+    //for configuring sample rate
+    juce::Label chooseSampRate{ {}, "Select output sample rate..." };
+    juce::ComboBox samplerateMenu;
     AudioProcessingComponent& apc;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(GUIComponent)

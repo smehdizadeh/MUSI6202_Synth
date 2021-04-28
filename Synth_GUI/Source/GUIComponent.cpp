@@ -30,8 +30,21 @@ GUIComponent::GUIComponent(AudioProcessingComponent& c) : apc(c) //this is how w
     sourceBtn.setButtonText("Square Wave");
     sourceBtn.onClick = [this] { sourceBtnClicked(); };
     dummySlider.setRange(0, 100); //doesn't do anything, just to test the gui
+
     setWantsKeyboardFocus(true);
     addKeyListener(this);
+
+    //for configuring sample rate
+    addAndMakeVisible(chooseSampRate);
+    chooseSampRate.setFont(juce::Font{ 16.0f });
+    addAndMakeVisible(samplerateMenu);
+    samplerateMenu.addItem("48 kHz", 1);
+    samplerateMenu.addItem("44.1 kHz", 2);
+    samplerateMenu.addItem("22.05 kHz", 3);
+    samplerateMenu.addItem("16 kHz", 4);
+
+    samplerateMenu.onChange = [this] {samplerateChanged(); };
+    samplerateMenu.setSelectedId(1); //default 48k
 }
 
 GUIComponent::~GUIComponent()
@@ -64,6 +77,9 @@ void GUIComponent::resized()
     // components that your component contains..
     dummySlider.setBounds(10, 10, getWidth() - 20, 20);
     sourceBtn.setBounds(30, 30, getWidth() - 20, 20);
+    chooseSampRate.setBounds(10, 10, getWidth() - 20, 20);
+    samplerateMenu.setBounds(10, 40, 100, 20);
+    dummySlider.setBounds(10, 70, getWidth() - 20, 20);
 }
 
 bool GUIComponent::keyPressed(const juce::KeyPress& key, juce::Component* originatingComponent)
@@ -103,4 +119,26 @@ void GUIComponent::sourceBtnClicked()
     }
 
     apc.NextSource();
+}
+
+void GUIComponent::samplerateChanged()
+{
+    switch (samplerateMenu.getSelectedId())
+    {
+    case 1: //48k
+        apc.setSampleRate(48000.0);
+        break;
+    case 2: //44.1k
+        apc.setSampleRate(44100.0);
+        break;
+    case 3: //22.05k
+        apc.setSampleRate(22050.0);
+        break;
+    case 4: //16k
+        apc.setSampleRate(16000.0);
+        break;
+    default: //48k
+        apc.setSampleRate(48000.0);
+        break;
+    }
 }
