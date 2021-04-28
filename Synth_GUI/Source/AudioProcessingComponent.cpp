@@ -121,26 +121,24 @@ void AudioProcessingComponent::getNextAudioBlock(const juce::AudioSourceChannelI
 
     for (auto sample = 0; sample < bufferToFill.numSamples; ++sample)
     {
-        
-        
+       
+        //AdditiveBlock
+        if (m_kSource == Source::square)
+        {
+            Add->GetSquareSamp(m_dWaveSamp, m_dTime, m_fSampleRate, 1, m_dFreq, 10); // 3rd and four
+            p[sample] = m_dWaveSamp;
+        }
 
-            //AdditiveBlock
-            if (m_kSource == Source::square)
-            {
-                Add->GetSquareSamp(m_dWaveSamp, m_dTime, m_fSampleRate, 1, m_dFreq, 10); // 3rd and four
-                p[sample] = m_dWaveSamp;
-            }
+        else if (m_kSource == Source::karplus)
+        {
+            p[sample] = m_pfSoundArray[KS->GetKarpWriteIdx()];
+        }
 
-            else if (m_kSource == Source::karplus)
-            {
-                p[sample] = m_pfSoundArray[KS->GetKarpWriteIdx()];
-            }
-
-            else if (m_kSource == Source::triangle)
-            {
-                Add->GetTriSamp(m_dWaveSamp, m_dTime, m_fSampleRate, 1, m_dFreq, 10); // 3rd and four
-                p[sample] = m_dWaveSamp;
-            }
+        else if (m_kSource == Source::triangle)
+        {
+            Add->GetTriSamp(m_dWaveSamp, m_dTime, m_fSampleRate, 1, m_dFreq, 10); // 3rd and four
+            p[sample] = m_dWaveSamp;
+        }
 
         //apply ADSR accordingly
         if (m_bPlaying)
