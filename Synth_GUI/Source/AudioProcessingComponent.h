@@ -29,10 +29,39 @@ public:
     void prepareToPlay(int samplesPerBlockExpected, double sampleRate) override;
     void getNextAudioBlock(const juce::AudioSourceChannelInfo& bufferToFill) override;
     void releaseResources() override;
+    void SetFrq(double);
+    void GetKey(int);
+    void ToggleSynth();
 
-    enum Source;
-    void ChangeSource(Source source);
+    enum Source
+    {
+        karplus,
+        square,
+        triangle,
+        numSources
+    };
+
+    enum Note
+    {
+        c = 90,
+        cs = 83,
+        d = 88,
+        ds = 68,
+        e = 67,
+        f = 86,
+        fs = 71,
+        g = 66,
+        gs = 72,
+        a = 78,
+        as = 74,
+        b = 77,
+        cOct = 44,
+        numNotes = 13
+    };
+
+    void NextSource();
     void setSampleRate(float newSampRate); //called by GUIComponent when user changes samp rate
+
 
 private:
     //=========================================================================
@@ -40,13 +69,17 @@ private:
 
     //=========================================================================
     float* m_pfSoundArray;
-    float m_fFreq;
+
+    double m_dFreq;
     float m_fSampleRate; //internal sample rate
     float m_fOutputSampRate; //output sample rate
 
     int m_fSampExpect;
     int m_iNumChannels;
+    int m_iNumKeysDown; // used for synth I/O logic
+    bool m_bPlaying;
     Source m_kSource;
+    Note m_kNote;
 
     juce::AudioBuffer<float> audioBuffer; //for temporary storage and processing
     juce::KeyPress key; //UI keyboard presses

@@ -26,12 +26,10 @@ public:
 
     ~KarplusStrong()
     {
-        //attenuation = 0;
         m_iArrayLength = 0;
         m_iSampleRate = 0;
         m_iKarpWriteIdx = 0;
         delete[] m_pfInputArray;
-        //delete[] karpArray;
     }
 
     int GetDelayLength()
@@ -77,11 +75,9 @@ public:
 
 private:
     juce::Random random;
-    //float attenuation;
     int m_iArrayLength;
     int m_iSampleRate;
     float* m_pfInputArray;
-    //float* karpArray;
     int m_iKarpWriteIdx;
     
 };
@@ -89,41 +85,11 @@ private:
 class Additive
 {
 public:
-    Additive(float frq) :
-        m_fFrq(frq),
-        m_fLevel(0)
-    {
-        //addBuff = new RingBuffer((int)fs);
-    }
+    Additive() {}
 
-    ~Additive()
-    {
+    ~Additive() {}
 
-    }
-
-    void SetFrq(float frq)
-    {
-        m_fFrq = frq;
-    }
-
-    void SetLevel(float level)
-    {
-        m_fLevel = level;
-
-        if (m_fLevel > 1)
-        {
-            m_fLevel = 1;
-        }
-    }
-
-    /*enum Shape
-    {
-        kSine,
-        kSquare,
-        kNumShapes
-    };*/
-
-    void GetSample(double& waveSamp, double& time, double fs, double amp, double frq, double numHarm)
+    void GetSquareSamp(double& waveSamp, double& time, double fs, double amp, double frq, double numHarm)
     {
         waveSamp = 0;
         if (time >= 1)
@@ -133,61 +99,37 @@ public:
 
         for (int i = 1; i <= numHarm; i++)
         {
-            waveSamp += amp * sin(2 * pi * time * frq * (__int64)(2 * i - 1));
-            waveSamp /= (__int64)(2 * i - 1);
+            double temp = 0;
+            temp += 0.25 * amp * sin(2 * pi * time * frq * (2 * i - 1));
+            temp /= (2 * i - 1);
+            waveSamp += temp;
         }
 
         waveSamp *= 4 / pi;
         time += 1 / fs;
     }
 
+    void GetTriSamp(double& waveSamp, double& time, double fs, double amp, double frq, double numHarm)
+    {
+        waveSamp = 0;
+        if (time >= 1)
+        {
+            time = 0;
+        }
+
+        for (int i = 1; i <= numHarm; i++)
+        {
+            double temp = 0;
+            temp += amp * sin(2 * pi * time * frq * (2 * i + 1));
+            temp *= pow(-1, i) * pow((2 * i + 1), -2);
+            waveSamp += temp;
+        }
+
+        waveSamp *= 8 / pow(pi, 2);
+        time += 1 / fs;
+    }
+
 private:
     const double pi = 3.141592;
-    float m_fFrq;
-    float m_fLevel;
-    //Shape m_WaveShape;
-
-    //RingBuffer* addBuff;
 };
 
-//class Granular :: Unused
-//{
-//public:
-//    Granular(int grainSize, int hopSize, float frq, int tableSize) :
-//        m_iGrainSize(grainSize),
-//        m_iHopSize(hopSize),
-//        m_dGrainPitch(frq),
-//        m_iTableSize(tableSize)
-//    {
-//        wavetable = new RingBuffer(m_iTableSize);
-//    }
-//
-//    ~Granular()
-//    {
-//        m_iGrainSize = 0;
-//        m_iHopSize = 0;
-//        m_dGrainPitch = 0;
-//
-//        delete wavetable;
-//        m_iTableSize = 0;
-//    }
-//
-//    void SetHopSize(int hop)
-//    {
-//        m_iHopSize = hop;
-//    }
-//
-//    void SetPitch()
-//    {
-//
-//    }
-//
-//private:
-//
-//    int m_iGrainSize;
-//    int m_iHopSize;
-//    float m_dGrainPitch;
-//
-//    RingBuffer* wavetable;
-//    int m_iTableSize;
-//};

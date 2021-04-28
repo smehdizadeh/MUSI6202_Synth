@@ -8,6 +8,17 @@
 
 #include <JuceHeader.h>
 #include "GUIComponent.h"
+#include <windows.h> //For debug macro
+#include <debugapi.h> //for debug macro
+
+//Use DBOUT(arg) to print to the VS console
+#define DBOUT(s)            \
+{                             \
+std::ostringstream os_;    \
+os_ << s;                   \
+OutputDebugString(os_.str().c_str()); \
+OutputDebugString("\n"); \
+}
 
 //==============================================================================
 GUIComponent::GUIComponent(AudioProcessingComponent& c) : apc(c) //this is how we get the GUI to communicate with the APC
@@ -15,7 +26,13 @@ GUIComponent::GUIComponent(AudioProcessingComponent& c) : apc(c) //this is how w
     // In your constructor, you should add any child components, and
     // initialise any special settings that your component needs.
     addAndMakeVisible(dummySlider);
+    addAndMakeVisible(sourceBtn);
+    sourceBtn.setButtonText("Square Wave");
+    sourceBtn.onClick = [this] { sourceBtnClicked(); };
     dummySlider.setRange(0, 100); //doesn't do anything, just to test the gui
+
+    setWantsKeyboardFocus(true);
+    addKeyListener(this);
 
     //for configuring sample rate
     addAndMakeVisible(chooseSampRate);
@@ -32,6 +49,7 @@ GUIComponent::GUIComponent(AudioProcessingComponent& c) : apc(c) //this is how w
 
 GUIComponent::~GUIComponent()
 {
+
 }
 
 //==============================================================================
@@ -42,7 +60,6 @@ void GUIComponent::paint(juce::Graphics& g)
        You should replace everything in this method with your own
        drawing code..
     */
-
     g.fillAll(getLookAndFeel().findColour(juce::ResizableWindow::backgroundColourId));   // clear the background
 
     g.setColour(juce::Colours::grey);
@@ -58,9 +75,50 @@ void GUIComponent::resized()
 {
     // This method is where you should set the bounds of any child
     // components that your component contains..
+    dummySlider.setBounds(10, 10, getWidth() - 20, 20);
+    sourceBtn.setBounds(30, 30, getWidth() - 20, 20);
     chooseSampRate.setBounds(10, 10, getWidth() - 20, 20);
     samplerateMenu.setBounds(10, 40, 100, 20);
     dummySlider.setBounds(10, 70, getWidth() - 20, 20);
+}
+
+bool GUIComponent::keyPressed(const juce::KeyPress& key, juce::Component* originatingComponent)
+{
+    //DBOUT(key.getKeyCode());
+    
+    apc.GetKey(key.getKeyCode());
+    return true;
+}
+
+bool GUIComponent::keyStateChanged(bool isKeyDown, juce::Component* originatingComponent)
+{
+    if (!isKeyDown)
+    {
+        apc.ToggleSynth();
+    }
+    return true;
+}
+
+void GUIComponent::sourceBtnClicked()
+{
+    if (sourceBtn.getButtonText() == "Square Wave")
+    {
+        sourceBtn.setButtonText("Karplus Strong");
+    }
+    else if (sourceBtn.getButtonText() == "Karplus Strong")
+    {
+        sourceBtn.setButtonText("Triangle Wave");
+    }
+    else if (sourceBtn.getButtonText() == "Triangle Wave")
+    {
+        sourceBtn.setButtonText("Square Wave");
+    }
+    else
+    {
+        sourceBtn.setButtonText("Error");
+    }
+
+    apc.NextSource();
 }
 
 void GUIComponent::samplerateChanged()

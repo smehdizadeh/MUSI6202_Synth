@@ -10,13 +10,25 @@
 
 #include <JuceHeader.h>
 #include "AudioProcessingComponent.h"
+#include <cmath>
+#include <windows.h> //For Debug macro
+#include <debugapi.h> //For Debug macro
+
+// Use DBOUT(args) to print to the VS console
+#define DBOUT(s)            \
+{                             \
+std::ostringstream os_;    \
+os_ << s;                   \
+OutputDebugString(os_.str().c_str()); \
+OutputDebugString("\n"); \
+}
 
 
 //==============================================================================
 AudioProcessingComponent::AudioProcessingComponent() :
     Add(0),
     m_pfSoundArray(0),
-    m_fFreq(0),
+    m_dFreq(0),
     m_fSampleRate(0),
     m_fOutputSampRate(0),
     m_iNumChannels(2),
@@ -26,11 +38,14 @@ AudioProcessingComponent::AudioProcessingComponent() :
     m_dWaveSamp(0),
     m_dTime(0),
     m_fSampExpect(0),
-    revrb(0)
+    revrb(0),
+    m_bPlaying(false),
+    m_iNumKeysDown(0)
 {
     // In your constructor, you should add any child components, and
     // initialise any special settings that your component needs.
     setAudioChannels(0, m_iNumChannels); // no inputs, two outputs
+    m_kSource = Source::square;
 }
 
 AudioProcessingComponent::~AudioProcessingComponent()
@@ -61,20 +76,17 @@ AudioProcessingComponent::~AudioProcessingComponent()
 void AudioProcessingComponent::prepareToPlay(int samplesPerBlockExpected, double sampleRate)
 {
     m_fSampleRate = sampleRate;
-    m_fOutputSampRate = sampleRate;
-    m_fSampExpect = samplesPerBlockExpected;
 
     filt = new FilterComponent(m_fSampleRate); //create filter module
     revrb = new ReverbComponent(m_fSampleRate, samplesPerBlockExpected); //create reverb module
 
-    // Code for Karplus Strong Algorithm
-    m_fFreq = 440; //KS frequency
+    // Code for Karplus Strong Algorithm 
     KS = new KarplusStrong(m_fSampleRate); //create KS generator
     KS->CreateOutput();
     m_pfSoundArray = new float[m_fSampleRate]; //KS buffer
     KS->GetKarpArray(m_pfSoundArray);
 
-    Add = new Additive(0);
+    Add = new Additive();
   
     //Envelope
     env.setSampleRate(sampleRate);
@@ -111,27 +123,36 @@ void AudioProcessingComponent::getNextAudioBlock(const juce::AudioSourceChannelI
 
     for (auto sample = 0; sample < bufferToFill.numSamples; ++sample)
     {
-        p[sample] = m_pfSoundArray[KS->GetKarpWriteIdx()]; //get sound from source gen
+       
+        //AdditiveBlock
+        if (m_kSource == Source::square)
+        {
+            Add->GetSquareSamp(m_dWaveSamp, m_dTime, m_fSampleRate, 1, m_dFreq, 10); // 3rd and four
+            p[sample] = m_dWaveSamp;
+        }
+
+        else if (m_kSource == Source::karplus)
+        {
+            p[sample] = m_pfSoundArray[KS->GetKarpWriteIdx()];
+        }
+
+        else if (m_kSource == Source::triangle)
+        {
+            Add->GetTriSamp(m_dWaveSamp, m_dTime, m_fSampleRate, 1, m_dFreq, 10); // 3rd and four
+            p[sample] = m_dWaveSamp;
+        }
 
         //apply ADSR accordingly
-        if (key.isKeyCurrentlyDown(juce::KeyPress::spaceKey))
+        if (m_bPlaying)
         {
-            //comment and uncomment blocks as desired to acheive different sound gens.
-
-            //AdditiveBlock
-            //Add->GetSample(m_dWaveSamp, m_dTime, m_fSampleRate, 1, 220, 5); //args 4,5,6: amplitude, frq, numHarmonics
-            //p[sample] = m_dWaveSamp;
-
-            //KarplusBlock
-            p[sample] = m_pfSoundArray[KS->GetKarpWriteIdx()];
-
             env.noteOn();
         }
         else
         {
             env.noteOff();
         }
-        KS->SetKarpWriteIdx((int)(m_fSampleRate/m_fFreq));
+
+        KS->SetKarpWriteIdx((int)(m_fSampleRate/m_dFreq));
     }
     env.applyEnvelopeToBuffer(audioBuffer, 0, bufferToFill.numSamples);
 
@@ -157,7 +178,140 @@ void AudioProcessingComponent::getNextAudioBlock(const juce::AudioSourceChannelI
 
 void AudioProcessingComponent::releaseResources()
 {
+    
+}
 
+void AudioProcessingComponent::ToggleSynth()
+{
+    if (key.isKeyCurrentlyDown((int)Note::c))
+    {
+        
+    }
+    else if ((key.isKeyCurrentlyDown((int)Note::cs)))
+    {
+
+    }
+    else if ((key.isKeyCurrentlyDown((int)Note::d)))
+    {
+        
+    }
+    else if ((key.isKeyCurrentlyDown((int)Note::ds)))
+    {
+        
+    }
+    else if ((key.isKeyCurrentlyDown((int)Note::e)))
+    {
+        
+    }
+    else if ((key.isKeyCurrentlyDown((int)Note::f)))
+    {
+        
+    }
+    else if ((key.isKeyCurrentlyDown((int)Note::fs)))
+    {
+        
+    }
+    else if ((key.isKeyCurrentlyDown((int)Note::g)))
+    {
+        
+    }
+    else if ((key.isKeyCurrentlyDown((int)Note::gs)))
+    {
+        
+    }
+    else if ((key.isKeyCurrentlyDown((int)Note::a)))
+    {
+        
+    }
+    else if ((key.isKeyCurrentlyDown((int)Note::as)))
+    {
+        
+    }
+    else if ((key.isKeyCurrentlyDown((int)Note::b)))
+    {
+        
+    }
+    else if ((key.isKeyCurrentlyDown((int)Note::cOct)))
+    {
+        
+    }
+    else
+    {
+        m_bPlaying = false;
+    }
+}
+
+void AudioProcessingComponent::SetFrq(double m)
+{
+    m_bPlaying = true;
+    m_iNumKeysDown += 1;
+    m_dFreq = pow(2, (m - 69) / 12) * 440;
+}
+
+
+void AudioProcessingComponent::GetKey(int press)
+{
+    switch (press)
+    {
+    case (int)Note::c:
+        SetFrq(48);
+        break;
+    case (int)Note::cs:
+        SetFrq(49);
+        break;
+    case (int)Note::d:
+        SetFrq(50);
+        break;
+    case (int)Note::ds:
+        SetFrq(51);
+        break;
+    case (int)Note::e:
+        SetFrq(52);
+        break;
+    case (int)Note::f:
+        SetFrq(53);
+        break;
+    case (int)Note::fs:
+        SetFrq(54);
+        break;
+    case (int)Note::g:
+        SetFrq(55);
+        break;
+    case (int)Note::gs:
+        SetFrq(56);
+        break;
+    case (int)Note::a:
+        SetFrq(57);
+        break;
+    case (int)Note::as:
+        SetFrq(58);
+        break;
+    case (int)Note::b:
+        SetFrq(59);
+        break;
+    case (int)Note::cOct:
+        SetFrq(60);
+        break;
+    default:
+        m_bPlaying = false;
+        break;
+    }
+}
+
+void AudioProcessingComponent::NextSource()
+{
+    if (m_kSource == Source::square)
+    {
+        m_kSource = Source::karplus;
+    }
+    else if (m_kSource == Source::karplus)
+    {
+        m_kSource = Source::triangle;
+    }
+    else if (m_kSource == Source::triangle)
+    {
+        m_kSource = Source::square;
+    }
 }
 
 void AudioProcessingComponent::setSampleRate(float newSampRate)
