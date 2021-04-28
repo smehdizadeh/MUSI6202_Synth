@@ -14,6 +14,7 @@
 
 //==============================================================================
 AudioProcessingComponent::AudioProcessingComponent() :
+    Add(0),
     m_pfSoundArray(0),
     m_fFreq(0),
     m_fSampleRate(0),
@@ -21,11 +22,14 @@ AudioProcessingComponent::AudioProcessingComponent() :
     m_iNumChannels(2),
     KS(0),
     filt(0),
+    key(0),
+    m_dWaveSamp(0),
+    m_dTime(0),
+    m_fSampExpect(0),
     revrb(0)
 {
     // In your constructor, you should add any child components, and
     // initialise any special settings that your component needs.
-
     setAudioChannels(0, m_iNumChannels); // no inputs, two outputs
 }
 
@@ -38,8 +42,13 @@ AudioProcessingComponent::~AudioProcessingComponent()
 
     KS->~KarplusStrong();
     KS = 0;
+  
+    Add->~Additive();
+    Add = 0;
+
     filt->~FilterComponent();
     filt = 0;
+  
     revrb->~ReverbComponent();
     revrb = 0;
 
@@ -53,6 +62,8 @@ void AudioProcessingComponent::prepareToPlay(int samplesPerBlockExpected, double
 {
     m_fSampleRate = sampleRate;
     m_fOutputSampRate = sampleRate;
+    m_fSampExpect = samplesPerBlockExpected;
+
     filt = new FilterComponent(m_fSampleRate); //create filter module
     revrb = new ReverbComponent(m_fSampleRate, samplesPerBlockExpected); //create reverb module
 
@@ -63,7 +74,9 @@ void AudioProcessingComponent::prepareToPlay(int samplesPerBlockExpected, double
     m_pfSoundArray = new float[m_fSampleRate]; //KS buffer
     KS->GetKarpArray(m_pfSoundArray);
 
-    // ADSR
+    Add = new Additive(0);
+  
+    //Envelope
     env.setSampleRate(sampleRate);
     juce::ADSR::Parameters params;
     params.attack = 0;
@@ -103,6 +116,15 @@ void AudioProcessingComponent::getNextAudioBlock(const juce::AudioSourceChannelI
         //apply ADSR accordingly
         if (key.isKeyCurrentlyDown(juce::KeyPress::spaceKey))
         {
+            //comment and uncomment blocks as desired to acheive different sound gens.
+
+            //AdditiveBlock
+            //Add->GetSample(m_dWaveSamp, m_dTime, m_fSampleRate, 1, 220, 5); //args 4,5,6: amplitude, frq, numHarmonics
+            //p[sample] = m_dWaveSamp;
+
+            //KarplusBlock
+            p[sample] = m_pfSoundArray[KS->GetKarpWriteIdx()];
+
             env.noteOn();
         }
         else
@@ -168,3 +190,14 @@ void AudioProcessingComponent::changeSampleRate(float* pfAudio, int numSamples)
         }
     }
 }
+
+//enum Source
+//{
+//    additive,
+//    karplus
+//};
+//
+//void ChangeSource(Source source)
+//{
+//    m_kSource = source;
+//}
