@@ -70,16 +70,15 @@ private:
     //=========================================================================
     float* m_pfSoundArray;
 
-    double m_dFreq;
+    double m_dFreq; // Frequency of note
     float m_fSampleRate; //internal sample rate
     float m_fOutputSampRate; //output sample rate
 
-    int m_fSampExpect;
     int m_iNumChannels;
     int m_iNumKeysDown; // used for synth I/O logic
-    bool m_bPlaying;
-    Source m_kSource;
-    Note m_kNote;
+    bool m_bPlaying; // Is the synth playing?
+    Source m_kSource; // Wave gen
+    Note m_kNote; // Which note of the chromatic scale
 
     juce::AudioBuffer<float> audioBuffer; //for temporary storage and processing
     juce::KeyPress key; //UI keyboard presses
@@ -92,8 +91,8 @@ private:
     ReverbComponent* revrb;
 
     Additive* Add;
-    double m_dWaveSamp;
-    double m_dTime;
+    double m_dWaveSamp; //Wave samples
+    double m_dTime; //Time variable used in source gen
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (AudioProcessingComponent)
 };

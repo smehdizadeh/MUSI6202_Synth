@@ -25,17 +25,16 @@ public:
     //==========================================================================
     void paint(juce::Graphics&) override;
     void resized() override;
-    void sourceBtnClicked();
-    bool keyPressed(const juce::KeyPress&, juce::Component*) override;
-    bool keyStateChanged(bool, Component*) override;
-
+    void sourceBtnClicked(); // Source button clicked.
+    bool keyPressed(const juce::KeyPress&, juce::Component*) override; // Used to detect key presses
+    bool keyStateChanged(bool, Component*) override; //Used to detect key releases
 
     void samplerateChanged(); //handles changes to the sample rate selection menu
 
 private:
     //==========================================================================
     juce::Slider dummySlider; //doesn't do anything, just to test the gui
-    juce::TextButton sourceBtn;
+    juce::TextButton sourceBtn; //Button to change the source
     
     //for configuring sample rate
     juce::Label chooseSampRate{ {}, "Select output sample rate..." };

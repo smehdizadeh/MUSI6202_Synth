@@ -37,7 +37,6 @@ AudioProcessingComponent::AudioProcessingComponent() :
     key(0),
     m_dWaveSamp(0),
     m_dTime(0),
-    m_fSampExpect(0),
     revrb(0),
     m_bPlaying(false),
     m_iNumKeysDown(0)
