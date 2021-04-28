@@ -11,17 +11,7 @@
 #include <JuceHeader.h>
 #include "AudioProcessingComponent.h"
 #include <cmath>
-#include <windows.h> //For Debug macro
-#include <debugapi.h> //For Debug macro
 
-// Use DBOUT(args) to print to the VS console
-#define DBOUT(s)            \
-{                             \
-std::ostringstream os_;    \
-os_ << s;                   \
-OutputDebugString(os_.str().c_str()); \
-OutputDebugString("\n"); \
-}
 
 
 //==============================================================================
@@ -34,12 +24,14 @@ AudioProcessingComponent::AudioProcessingComponent() :
     m_iNumChannels(2),
     KS(0),
     filt(0),
-    key(0),
     m_dWaveSamp(0),
-    m_dTime(0),
     revrb(0),
     m_bPlaying(false),
-    m_iNumKeysDown(0)
+    m_iNumKeysDown(0),
+    m_fLpfCutoff(3000),
+    m_fNumHarmonics(200),
+    m_bReverbOn(false),
+    m_dTransposeVal(0)
 {
     // In your constructor, you should add any child components, and
     // initialise any special settings that your component needs.
@@ -75,25 +67,25 @@ AudioProcessingComponent::~AudioProcessingComponent()
 void AudioProcessingComponent::prepareToPlay(int samplesPerBlockExpected, double sampleRate)
 {
     m_fSampleRate = sampleRate;
-    m_fOutputSampRate = sampleRate;
+    m_fOutputSampRate = sampleRate; 
 
     filt = new FilterComponent(m_fSampleRate); //create filter module
     revrb = new ReverbComponent(m_fSampleRate, samplesPerBlockExpected); //create reverb module
 
     // Code for Karplus Strong Algorithm 
     KS = new KarplusStrong(m_fSampleRate); //create KS generator
-    KS->CreateOutput();
+    KS->CreateOutput(); //Create KS random samples
     m_pfSoundArray = new float[m_fSampleRate]; //KS buffer
-    KS->GetKarpArray(m_pfSoundArray);
+    KS->GetKarpArray(m_pfSoundArray); // Put random samples into buffer
 
     Add = new Additive();
   
     //Envelope
     env.setSampleRate(sampleRate);
     juce::ADSR::Parameters params;
-    params.attack = 0;
-    params.decay = 0;
-    params.sustain = 1.0;
+    params.attack = 0.1;
+    params.decay = 0.1;
+    params.sustain = 0.9;
     params.release = 0.5;
     env.setParameters(params);
   
@@ -107,27 +99,14 @@ void AudioProcessingComponent::getNextAudioBlock(const juce::AudioSourceChannelI
 {
     // ***** EVERYTHING DONE IN MONO AND THEN COPIED TO ADDITIONAL CHANNELS ******
 
-    // Filter controls
-    if (key.isKeyCurrentlyDown(juce::KeyPress::upKey))
-    {
-        filt->AdjustCutoffFreq(juce::KeyPress::upKey);
-    }
-
-    if (key.isKeyCurrentlyDown(juce::KeyPress::downKey))
-    {
-        filt->AdjustCutoffFreq(juce::KeyPress::downKey);
-    }
-
     auto* p = audioBuffer.getWritePointer(0); //pointer to working buffer
-
 
     for (auto sample = 0; sample < bufferToFill.numSamples; ++sample)
     {
        
-        //AdditiveBlock
         if (m_kSource == Source::square)
         {
-            Add->GetSquareSamp(m_dWaveSamp, m_dTime, m_fSampleRate, 1, m_dFreq, 10); // 3rd and four
+            Add->GetSquareSamp(m_dWaveSamp, m_fSampleRate, 1, m_dFreq, m_fNumHarmonics); 
             p[sample] = m_dWaveSamp;
         }
 
@@ -138,7 +117,7 @@ void AudioProcessingComponent::getNextAudioBlock(const juce::AudioSourceChannelI
 
         else if (m_kSource == Source::triangle)
         {
-            Add->GetTriSamp(m_dWaveSamp, m_dTime, m_fSampleRate, 1, m_dFreq, 10); // 3rd and four
+            Add->GetTriSamp(m_dWaveSamp, m_fSampleRate, 1, m_dFreq, m_fNumHarmonics); 
             p[sample] = m_dWaveSamp;
         }
 
@@ -157,10 +136,10 @@ void AudioProcessingComponent::getNextAudioBlock(const juce::AudioSourceChannelI
     env.applyEnvelopeToBuffer(audioBuffer, 0, bufferToFill.numSamples);
 
     // CUTOFF RANGE IS 22 Hz - 20 kHz, GAIN RANGE IS 0.0 - 1.0
-    filt->processMovingAvgFilt(p, p, bufferToFill.numSamples, filt->GetCutoffFreq(), 0.9); //LP Filter
+    filt->processMovingAvgFilt(p, p, bufferToFill.numSamples, m_fLpfCutoff, 0.9); //LP Filter
 
     // CONVOLUTIONAL REVERB TESTING.. PRESS TAB TO TOGGLE REVERB ON/OFF
-    if (key.isKeyCurrentlyDown(juce::KeyPress::tabKey))
+    if (m_bReverbOn)
     {
         revrb->renderNextSubBlock(audioBuffer, 0, bufferToFill.numSamples);
     }
@@ -181,121 +160,44 @@ void AudioProcessingComponent::releaseResources()
     
 }
 
-void AudioProcessingComponent::ToggleSynth()
-{
-    if (key.isKeyCurrentlyDown((int)Note::c))
-    {
-        
-    }
-    else if ((key.isKeyCurrentlyDown((int)Note::cs)))
-    {
-
-    }
-    else if ((key.isKeyCurrentlyDown((int)Note::d)))
-    {
-        
-    }
-    else if ((key.isKeyCurrentlyDown((int)Note::ds)))
-    {
-        
-    }
-    else if ((key.isKeyCurrentlyDown((int)Note::e)))
-    {
-        
-    }
-    else if ((key.isKeyCurrentlyDown((int)Note::f)))
-    {
-        
-    }
-    else if ((key.isKeyCurrentlyDown((int)Note::fs)))
-    {
-        
-    }
-    else if ((key.isKeyCurrentlyDown((int)Note::g)))
-    {
-        
-    }
-    else if ((key.isKeyCurrentlyDown((int)Note::gs)))
-    {
-        
-    }
-    else if ((key.isKeyCurrentlyDown((int)Note::a)))
-    {
-        
-    }
-    else if ((key.isKeyCurrentlyDown((int)Note::as)))
-    {
-        
-    }
-    else if ((key.isKeyCurrentlyDown((int)Note::b)))
-    {
-        
-    }
-    else if ((key.isKeyCurrentlyDown((int)Note::cOct)))
-    {
-        
-    }
-    else
-    {
-        m_bPlaying = false;
-    }
-}
-
 void AudioProcessingComponent::SetFrq(double m)
 {
+    m += m_dTransposeVal;
     m_bPlaying = true;
     m_iNumKeysDown += 1;
     m_dFreq = pow(2, (m - 69) / 12) * 440;
 }
 
-
-void AudioProcessingComponent::GetKey(int press)
+void AudioProcessingComponent::SetTranspositionVal(double val)
 {
-    switch (press)
+    m_dTransposeVal = val;
+}
+
+void AudioProcessingComponent::SetNumHarmonics(float val)
+{
+    m_fNumHarmonics = val;
+}
+
+void AudioProcessingComponent::SetPlaying(bool isPlaying)
+{
+    m_bPlaying = isPlaying;
+}
+
+void AudioProcessingComponent::ToggleReverb()
+{
+    if (m_bReverbOn)
     {
-    case (int)Note::c:
-        SetFrq(48);
-        break;
-    case (int)Note::cs:
-        SetFrq(49);
-        break;
-    case (int)Note::d:
-        SetFrq(50);
-        break;
-    case (int)Note::ds:
-        SetFrq(51);
-        break;
-    case (int)Note::e:
-        SetFrq(52);
-        break;
-    case (int)Note::f:
-        SetFrq(53);
-        break;
-    case (int)Note::fs:
-        SetFrq(54);
-        break;
-    case (int)Note::g:
-        SetFrq(55);
-        break;
-    case (int)Note::gs:
-        SetFrq(56);
-        break;
-    case (int)Note::a:
-        SetFrq(57);
-        break;
-    case (int)Note::as:
-        SetFrq(58);
-        break;
-    case (int)Note::b:
-        SetFrq(59);
-        break;
-    case (int)Note::cOct:
-        SetFrq(60);
-        break;
-    default:
-        m_bPlaying = false;
-        break;
+        m_bReverbOn = false;
     }
+    else 
+    {
+        m_bReverbOn = true;
+    }
+}
+
+void AudioProcessingComponent::SetLPFCutoff(float val)
+{
+    m_fLpfCutoff = val;
 }
 
 void AudioProcessingComponent::NextSource()
@@ -344,14 +246,3 @@ void AudioProcessingComponent::changeSampleRate(float* pfAudio, int numSamples)
         }
     }
 }
-
-//enum Source
-//{
-//    additive,
-//    karplus
-//};
-//
-//void ChangeSource(Source source)
-//{
-//    m_kSource = source;
-//}

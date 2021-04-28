@@ -85,51 +85,45 @@ private:
 class Additive
 {
 public:
-    Additive() {}
+    Additive() : m_dClock(0)
+    {}
 
     ~Additive() {}
 
-    void GetSquareSamp(double& waveSamp, double& time, double fs, double amp, double frq, double numHarm)
+    void GetSquareSamp(double& waveSamp, double fs, double amp, double frq, double numHarm)
     {
         waveSamp = 0;
-        if (time >= 1)
-        {
-            time = 0;
-        }
 
         for (int i = 1; i <= numHarm; i++)
         {
             double temp = 0;
-            temp += 0.25 * amp * sin(2 * pi * time * frq * (2 * i - 1));
+            temp += 0.25 * amp * sin(2 * pi * m_dClock * frq * (2 * i - 1));
             temp /= (2 * i - 1);
             waveSamp += temp;
         }
 
         waveSamp *= 4 / pi;
-        time += 1 / fs;
+        m_dClock += 1/fs;
     }
 
-    void GetTriSamp(double& waveSamp, double& time, double fs, double amp, double frq, double numHarm)
+    void GetTriSamp(double& waveSamp, double fs, double amp, double frq, double numHarm)
     {
         waveSamp = 0;
-        if (time >= 1)
-        {
-            time = 0;
-        }
 
         for (int i = 1; i <= numHarm; i++)
         {
             double temp = 0;
-            temp += amp * sin(2 * pi * time * frq * (2 * i + 1));
+            temp += amp * sin(2 * pi * m_dClock * frq * (2 * i + 1));
             temp *= pow(-1, i) * pow((2 * i + 1), -2);
             waveSamp += temp;
         }
 
         waveSamp *= 8 / pow(pi, 2);
-        time += 1 / fs;
+        m_dClock += 1 / fs;
     }
 
 private:
     const double pi = 3.141592;
+    double m_dClock;
 };
 
