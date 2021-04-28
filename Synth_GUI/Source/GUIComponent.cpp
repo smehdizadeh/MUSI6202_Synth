@@ -67,15 +67,20 @@ void GUIComponent::samplerateChanged()
 {
     switch (samplerateMenu.getSelectedId())
     {
-    case 1:
-        //48k
-    case 2:
-        //44.1k
-    case 3:
-        //22.05k
-    case 4:
-        //16k
-    default:
-        //48k
+    case 1: //48k
+        apc.setSampleRate(48000.0);
+        break;
+    case 2: //44.1k
+        apc.setSampleRate(44100.0);
+        break;
+    case 3: //22.05k
+        apc.setSampleRate(22050.0);
+        break;
+    case 4: //16k
+        apc.setSampleRate(16000.0);
+        break;
+    default: //48k
+        apc.setSampleRate(48000.0);
+        break;
     }
 }

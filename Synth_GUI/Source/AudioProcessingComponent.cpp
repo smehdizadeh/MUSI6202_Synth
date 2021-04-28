@@ -17,6 +17,7 @@ AudioProcessingComponent::AudioProcessingComponent() :
     m_pfSoundArray(0),
     m_fFreq(0),
     m_fSampleRate(0),
+    m_fOutputSampRate(0),
     m_iNumChannels(2),
     KS(0),
     filt(0),
@@ -43,6 +44,7 @@ AudioProcessingComponent::~AudioProcessingComponent()
     revrb = 0;
 
     env.reset();
+    antiAlias.reset();
 }
 
 
@@ -50,6 +52,7 @@ AudioProcessingComponent::~AudioProcessingComponent()
 void AudioProcessingComponent::prepareToPlay(int samplesPerBlockExpected, double sampleRate)
 {
     m_fSampleRate = sampleRate;
+    m_fOutputSampRate = sampleRate;
     filt = new FilterComponent(m_fSampleRate); //create filter module
     revrb = new ReverbComponent(m_fSampleRate, samplesPerBlockExpected); //create reverb module
 
@@ -122,6 +125,10 @@ void AudioProcessingComponent::getNextAudioBlock(const juce::AudioSourceChannelI
     // send to the Juce output buffer (ALL CHANNELS)
     for (auto channel = 0; channel < bufferToFill.buffer->getNumChannels(); ++channel)
     {
+        //perform downsampling here
+        changeSampleRate(p, bufferToFill.numSamples);
+
+        //copy to output channels
         bufferToFill.buffer->copyFrom(channel, bufferToFill.startSample, p, bufferToFill.numSamples);
     }
 }
@@ -129,4 +136,35 @@ void AudioProcessingComponent::getNextAudioBlock(const juce::AudioSourceChannelI
 void AudioProcessingComponent::releaseResources()
 {
 
+}
+
+void AudioProcessingComponent::setSampleRate(float newSampRate)
+{
+    m_fOutputSampRate = newSampRate;
+}
+
+void AudioProcessingComponent::changeSampleRate(float* pfAudio, int numSamples)
+{
+    //first check for default/no change case  (48k)
+    if (m_fOutputSampRate == 48000.0) { return; }
+
+    else
+    {
+        //apply anti-aliasing filter
+        antiAlias.reset();
+        antiAlias.setCoefficients(juce::IIRCoefficients::makeLowPass(m_fSampleRate, m_fOutputSampRate / 2.0));
+        antiAlias.processSamples(pfAudio, numSamples);
+
+        if (m_fOutputSampRate == 16000.0) //then check for the integer factor case (16k)
+        {
+            for (int i = 0; i < numSamples; i += 3) //take every third sample
+            {
+
+            }
+        }
+        else //rational factor
+        {
+
+        }
+    }
 }
