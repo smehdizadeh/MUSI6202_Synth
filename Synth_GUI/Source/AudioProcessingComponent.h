@@ -13,6 +13,8 @@
 #include <JuceHeader.h>
 #include "SourceGeneration.h"
 #include "FilterComponent.h"
+#include "ModEffectsComponent.h"
+
 
 //==============================================================================
 /*
@@ -38,8 +40,10 @@ private:
 
     juce::AudioBuffer<float> audioBuffer; //for temporary storage and processing
 
+
     // Modules
     FilterComponent* filt;
+    ModEffectsComponent* mod;
     KarplusStrong* KS;
     juce::KeyPress key;
 

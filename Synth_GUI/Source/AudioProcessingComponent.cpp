@@ -43,6 +43,7 @@ void AudioProcessingComponent::prepareToPlay(int samplesPerBlockExpected, double
 {
     m_fSampleRate = sampleRate;
     filt = new FilterComponent(m_fSampleRate);
+    mod = new ModEffectsComponent(m_fSampleRate);
     // Code for Karplus Strong Algorithm
 
     m_fFreq = 440;
@@ -90,6 +91,8 @@ void AudioProcessingComponent::getNextAudioBlock(const juce::AudioSourceChannelI
 
     // CUTOFF RANGE IS 22 Hz - 20 kHz, GAIN RANGE IS 0.0 - 1.0
     filt->processMovingAvgFilt(p, p, bufferToFill.numSamples, filt->GetCutoffFreq(), 0.9); //LP Filter noise
+    mod->processFlanger(p, p, bufferToFill.numSamples, 2.0);
+
 
     // send to the Juce output buffer (ALL CHANNELS)
     for (auto channel = 0; channel < bufferToFill.buffer->getNumChannels(); ++channel)
