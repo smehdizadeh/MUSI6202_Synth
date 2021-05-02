@@ -56,8 +56,9 @@ GUIComponent::GUIComponent(AudioProcessingComponent& c) :
     addAndMakeVisible(bitdepthMenu);
     bitdepthMenu.addItem("32 bit", 1);
     bitdepthMenu.addItem("24 bit", 2);
-    bitdepthMenu.addItem("16 bit", 3);
-    bitdepthMenu.addItem("8 bit", 4);
+    bitdepthMenu.addItem("20 bit", 3);
+    bitdepthMenu.addItem("16 bit", 4);
+    bitdepthMenu.addItem("8 bit", 5);
 
     bitdepthMenu.onChange = [this] {bitdepthChanged(); };
     bitdepthMenu.setSelectedId(1); //default 32 bit
@@ -370,5 +371,25 @@ void GUIComponent::samplerateChanged()
 
 void GUIComponent::bitdepthChanged()
 {
-
+    switch (bitdepthMenu.getSelectedId())
+    {
+    case 1: //32 bit
+        apc.setBitDepth(32.0);
+        break;
+    case 2: //24 bit
+        apc.setBitDepth(24.0);
+        break;
+    case 3: //20 bit
+        apc.setBitDepth(20.0);
+        break;
+    case 4: //16 bit
+        apc.setBitDepth(16.0);
+        break;
+    case 5: //8 bit
+        apc.setBitDepth(8.0);
+        break;
+    default: //32 bit
+        apc.setBitDepth(32.0);
+        break;
+    }
 }

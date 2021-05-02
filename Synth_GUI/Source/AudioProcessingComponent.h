@@ -55,6 +55,7 @@ public:
 
     void NextSource(); //called by GUIComponent when user changes synth sound source/osc
     void setSampleRate(float newSampRate); //called by GUIComponent when user changes samp rate
+    void setBitDepth(float newBitDepth); //called by GUIComponent when user changes bit depth
 
     enum Source
     {
@@ -67,7 +68,8 @@ public:
 private:
     //=========================================================================
     void changeSampleRate(float* pfAudio, int numSamples); //called within APC during getNextAudioBlock to change the samp rate at the output
-    
+    void changeBitDepth(float* pfAudio, int numSamples); //called within APC during getNextAudioBlock to change the bit depth at the output
+
     //=========================================================================
     float* m_pfSoundArray;
 
@@ -82,6 +84,7 @@ private:
 
     float m_fSampleRate; //internal sample rate
     float m_fOutputSampRate; //output sample rate
+    float m_fOutputBitDepth; //output bit depth
 
     int m_iNumChannels;
 

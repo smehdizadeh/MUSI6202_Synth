@@ -21,6 +21,7 @@ AudioProcessingComponent::AudioProcessingComponent() :
     m_dFreq(0),
     m_fSampleRate(0),
     m_fOutputSampRate(0),
+    m_fOutputBitDepth(0),
     m_iNumChannels(2),
     KS(0),
     filt(0),
@@ -68,6 +69,7 @@ void AudioProcessingComponent::prepareToPlay(int samplesPerBlockExpected, double
 {
     m_fSampleRate = sampleRate;
     m_fOutputSampRate = sampleRate; 
+    m_fOutputBitDepth = 32.0;
 
     filt = new FilterComponent(m_fSampleRate); //create filter module
     revrb = new ReverbComponent(m_fSampleRate, samplesPerBlockExpected); //create reverb module
@@ -150,6 +152,9 @@ void AudioProcessingComponent::getNextAudioBlock(const juce::AudioSourceChannelI
         //perform downsampling here
         changeSampleRate(p, bufferToFill.numSamples);
 
+        //perform down quantizing here
+        changeBitDepth(p, bufferToFill.numSamples);
+
         //copy to output channels
         bufferToFill.buffer->copyFrom(channel, bufferToFill.startSample, p, bufferToFill.numSamples);
     }
@@ -221,6 +226,11 @@ void AudioProcessingComponent::setSampleRate(float newSampRate)
     m_fOutputSampRate = newSampRate;
 }
 
+void AudioProcessingComponent::setBitDepth(float newBitDepth)
+{
+    m_fOutputBitDepth = newBitDepth;
+}
+
 void AudioProcessingComponent::changeSampleRate(float* pfAudio, int numSamples)
 {
     //first check for default/no change case  (48k)
@@ -243,6 +253,20 @@ void AudioProcessingComponent::changeSampleRate(float* pfAudio, int numSamples)
         else //rational factor
         {
 
+        }
+    }
+}
+
+void AudioProcessingComponent::changeBitDepth(float* pfAudio, int numSamples)
+{
+    //first check for default/no change case  (32 bit / float)
+    if (m_fOutputBitDepth == 32.0) { return; }
+
+    else if (m_fOutputBitDepth == 8.0)
+    {
+        for (int i = 0; i < numSamples; i++)
+        {
+            pfAudio[i] = static_cast<int8_t>(pfAudio[i]);
         }
     }
 }
