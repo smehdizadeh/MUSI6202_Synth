@@ -31,6 +31,7 @@ public:
     bool keyStateChanged(bool, Component*) override; //Used to detect key releases
 
     void samplerateChanged(); //handles changes to the sample rate selection menu
+    void bitdepthChanged(); //handles changes to the bit depth selection menu
 
     enum Note
     {
@@ -69,14 +70,17 @@ private:
     //==========================================================================
     juce::Slider lpfCutoff; //Slider for LPF cutoff frequency
     juce::TextButton sourceBtn; //Button to change the source
-    juce::Label selNumHarms; //Input box for specifying number of harmonics in additive synthesis
 
-    //for configuring sample rate
+    juce::Label selNumHarms; //Input box for specifying number of harmonics in additive synthesis
     juce::Label chooseSampRate{ {}, "Select output sample rate..." };
+    juce::Label chooseBitDepth{ {}, "Select output bit depth..." };
     juce::Label lpfCutoffLabel{ {}, "LPF Cutoff Frequency Slider" };
     juce::Label playDirections{ {}, "Play the synth with the bottom two rows of letter keys! Use the number keys 1-5 at the top to change the octave!" };
     juce::Label reverbDirections{ {}, "Press the tab key to toggle reverb on and off!" };
+    
     juce::ComboBox samplerateMenu;
+    juce::ComboBox bitdepthMenu;
+    
     AudioProcessingComponent& apc;
 
     juce::KeyPress key; // UI Keyboard presses

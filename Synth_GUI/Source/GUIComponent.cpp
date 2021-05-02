@@ -50,6 +50,18 @@ GUIComponent::GUIComponent(AudioProcessingComponent& c) :
     samplerateMenu.onChange = [this] {samplerateChanged(); };
     samplerateMenu.setSelectedId(1); //default 48k
 
+    //for configuring bit depth
+    addAndMakeVisible(chooseBitDepth);
+    chooseBitDepth.setFont(juce::Font{ 16.0f });
+    addAndMakeVisible(bitdepthMenu);
+    bitdepthMenu.addItem("32 bit", 1);
+    bitdepthMenu.addItem("24 bit", 2);
+    bitdepthMenu.addItem("16 bit", 3);
+    bitdepthMenu.addItem("8 bit", 4);
+
+    bitdepthMenu.onChange = [this] {bitdepthChanged(); };
+    bitdepthMenu.setSelectedId(1); //default 32 bit
+
     //Slider Labels and directions
     addAndMakeVisible(lpfCutoffLabel);
     lpfCutoffLabel.setFont(juce::Font{ 16.0f });
@@ -101,11 +113,13 @@ void GUIComponent::resized()
     // This method is where you should set the bounds of any child
     // components that your component contains..
     chooseSampRate.setBounds(10, 10, getWidth() - 20, 20);
+    chooseBitDepth.setBounds(getWidth() - 300, 10, getWidth() - 20, 20);
     samplerateMenu.setBounds(10, 40, 100, 20);
+    bitdepthMenu.setBounds(getWidth() - 300, 40, 100, 20);
 
     sourceBtn.setBounds(30, 70, getWidth() - 60, 20);
     lpfCutoff.setBounds(10, 100, getWidth() - 20, 20);
-    lpfCutoffLabel.setBounds(250, 125, getWidth() - 20, 20);
+    lpfCutoffLabel.setBounds(getWidth()*0.4, 125, getWidth() - 20, 20);
     playDirections.setBounds(10, 400, getWidth() - 20, 20);
     reverbDirections.setBounds(10, 200, getWidth() - 20, 20);
 }
@@ -352,4 +366,9 @@ void GUIComponent::samplerateChanged()
         apc.setSampleRate(48000.0);
         break;
     }
+}
+
+void GUIComponent::bitdepthChanged()
+{
+
 }
