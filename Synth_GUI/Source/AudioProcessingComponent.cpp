@@ -262,11 +262,15 @@ void AudioProcessingComponent::changeBitDepth(float* pfAudio, int numSamples)
     //first check for default/no change case  (32 bit / float)
     if (m_fOutputBitDepth == 32.0) { return; }
 
-    else if (m_fOutputBitDepth == 8.0)
+    else
     {
-        for (int i = 0; i < numSamples; i++)
+        float M = pow(2, m_fOutputBitDepth); //number of steps
+        float delta = 2.0 / M; //step size
+
+        for (int i = 0; i < numSamples; i++) //quantize block
         {
-            pfAudio[i] = static_cast<int8_t>(pfAudio[i]);
+            pfAudio[i] = (floor(pfAudio[i] / delta) * delta) + (delta * 0.5); //mid rise
+            //pfAudio[i] = (floor(pfAudio[i] / delta) * delta); //mid tread
         }
     }
 }
