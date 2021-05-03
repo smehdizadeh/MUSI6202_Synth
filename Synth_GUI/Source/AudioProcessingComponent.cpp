@@ -110,6 +110,12 @@ void AudioProcessingComponent::getNextAudioBlock(const juce::AudioSourceChannelI
             p[sample] = m_dWaveSamp;
         }
 
+        else if (m_kSource == Source::sine)
+        {
+            Add->GetSquareSamp(m_dWaveSamp, m_fSampleRate, 1, m_dFreq, 1);
+            p[sample] = m_dWaveSamp;
+        }
+
         else if (m_kSource == Source::karplus)
         {
             p[sample] = m_pfSoundArray[KS->GetKarpWriteIdx()];
@@ -200,19 +206,27 @@ void AudioProcessingComponent::SetLPFCutoff(float val)
     m_fLpfCutoff = val;
 }
 
-void AudioProcessingComponent::NextSource()
+void AudioProcessingComponent::SetSource(int source)
 {
-    if (m_kSource == Source::square)
+    if (source == 1)
     {
         m_kSource = Source::karplus;
     }
-    else if (m_kSource == Source::karplus)
+    else if (source == 2)
+    {
+        m_kSource = Source::sine;
+    }
+    else if (source == 3)
+    {
+        m_kSource = Source::square;
+    }
+    else if (source == 4)
     {
         m_kSource = Source::triangle;
     }
-    else if (m_kSource == Source::triangle)
+    else
     {
-        m_kSource = Source::square;
+        m_kSource = Source::sine;
     }
 }
 

@@ -26,7 +26,7 @@ public:
     void paint(juce::Graphics&) override;
     void resized() override;
 
-    void sourceBtnClicked(); //Source button clicked. Cycle thru possible synth sources
+    void sourceChanged(); //Handles changes to source
     bool keyPressed(const juce::KeyPress&, juce::Component*) override; // Used to detect key presses
     bool keyStateChanged(bool, Component*) override; //Used to detect key releases
 
@@ -68,15 +68,21 @@ private:
     void GetKey(int);
     //==========================================================================
     juce::Slider lpfCutoff; //Slider for LPF cutoff frequency
-    juce::TextButton sourceBtn; //Button to change the source
+    
     juce::Label selNumHarms; //Input box for specifying number of harmonics in additive synthesis
 
     //for configuring sample rate
+    juce::ComboBox samplerateMenu;
     juce::Label chooseSampRate{ {}, "Select output sample rate..." };
+
+    //for configuring source
+    juce::ComboBox sourceMenu; //Menu to change the source
+    juce::Label chooseSource{ {}, "Select Source..." };
+
     juce::Label lpfCutoffLabel{ {}, "LPF Cutoff Frequency Slider" };
     juce::Label playDirections{ {}, "Play the synth with the bottom two rows of letter keys! Use the number keys 1-5 at the top to change the octave!" };
     juce::Label reverbDirections{ {}, "Press the tab key to toggle reverb on and off!" };
-    juce::ComboBox samplerateMenu;
+    
     AudioProcessingComponent& apc;
 
     juce::KeyPress key; // UI Keyboard presses

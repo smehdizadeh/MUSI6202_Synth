@@ -53,12 +53,13 @@ public:
 
     void SetLPFCutoff(float); //Set the LPF cutoff frequency
 
-    void NextSource(); //called by GUIComponent when user changes synth sound source/osc
+    void SetSource(int); //called by GUIComponent when user changes synth sound source/osc
     void setSampleRate(float newSampRate); //called by GUIComponent when user changes samp rate
 
     enum Source
     {
         karplus,
+        sine, 
         square,
         triangle,
         numSources

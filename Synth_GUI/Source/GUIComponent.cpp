@@ -20,6 +20,7 @@ GUIComponent::GUIComponent(AudioProcessingComponent& c) :
     m_bInitialized(false)
 {
     // LPF cutoff slider
+    lpfCutoff.setSliderStyle(juce::Slider::Rotary);
     addAndMakeVisible(lpfCutoff);
     lpfCutoff.setRange(22, 10000);
     lpfCutoff.setValue(3000);
@@ -27,11 +28,6 @@ GUIComponent::GUIComponent(AudioProcessingComponent& c) :
     {
         apc.SetLPFCutoff(lpfCutoff.getValue());
     };
-
-    // Change the source of the sound
-    addAndMakeVisible(sourceBtn);
-    sourceBtn.setButtonText("Click Here to Start!");
-    sourceBtn.onClick = [this] { sourceBtnClicked(); };
     
 
     //Keyboard Listeners
@@ -46,17 +42,27 @@ GUIComponent::GUIComponent(AudioProcessingComponent& c) :
     samplerateMenu.addItem("44.1 kHz", 2);
     samplerateMenu.addItem("22.05 kHz", 3);
     samplerateMenu.addItem("16 kHz", 4);
-
     samplerateMenu.onChange = [this] {samplerateChanged(); };
     samplerateMenu.setSelectedId(1); //default 48k
+
+
+    //for configuring source
+    addAndMakeVisible(sourceMenu);
+    sourceMenu.addItem("Karplus", 1);
+    sourceMenu.addItem("Sine", 2);
+    sourceMenu.addItem("Square", 3);
+    sourceMenu.addItem("Triangle", 4);
+    sourceMenu.onChange = [this] {sourceChanged(); };
+    sourceMenu.setSelectedId(1); //default karplus Strong
+    
 
     //Slider Labels and directions
     addAndMakeVisible(lpfCutoffLabel);
     lpfCutoffLabel.setFont(juce::Font{ 16.0f });
-    addAndMakeVisible(playDirections);
+    //addAndMakeVisible(playDirections);
     playDirections.setFont(juce::Font{ 16.0f });
     playDirections.setVisible(false);
-    addAndMakeVisible(reverbDirections);
+    //addAndMakeVisible(reverbDirections);
     reverbDirections.setFont(juce::Font{ 16.0f });
     reverbDirections.setVisible(false);
 
@@ -96,16 +102,29 @@ void GUIComponent::paint(juce::Graphics& g)
     g.setFont(14.0f);
 }
 
-void GUIComponent::resized()
+void GUIComponent::resized() //GUI positions on screen
 {
-    // This method is where you should set the bounds of any child
-    // components that your component contains..
+    auto border = 4;
+    auto area = getLocalBounds();
+    auto dialArea = area.removeFromTop(area.getHeight() / 2);
+
+    // sample rate
     chooseSampRate.setBounds(10, 10, getWidth() - 20, 20);
     samplerateMenu.setBounds(10, 40, 100, 20);
 
-    sourceBtn.setBounds(30, 70, getWidth() - 60, 20);
-    lpfCutoff.setBounds(10, 100, getWidth() - 20, 20);
-    lpfCutoffLabel.setBounds(250, 125, getWidth() - 20, 20);
+    // source
+    chooseSource.setBounds(10, 70, getWidth() - 20, 20);
+    sourceMenu.setBounds(10, 100, 100, 20);
+
+    // low pass filter
+    lpfCutoff.setBounds(0, 150, 150, 150);
+    lpfCutoffLabel.setBounds(150, 155, getWidth() - 20, 20);
+
+    //comb filter
+
+    //reverb
+
+    // directions
     playDirections.setBounds(10, 400, getWidth() - 20, 20);
     reverbDirections.setBounds(10, 200, getWidth() - 20, 20);
 }
@@ -303,7 +322,7 @@ void GUIComponent::GetKey(int press)
     }
 }
 
-void GUIComponent::sourceBtnClicked()
+void GUIComponent::sourceChanged()
 {
     if (!m_bInitialized)
     {
@@ -312,24 +331,21 @@ void GUIComponent::sourceBtnClicked()
         m_bInitialized = true;
     }
 
-    if ((sourceBtn.getButtonText() == "Square Wave") || (sourceBtn.getButtonText() == "Click Here to Start!"))
+    switch (sourceMenu.getSelectedId())
     {
-        sourceBtn.setButtonText("Karplus Strong");
+    case 1:
+        apc.SetSource(1);
+        break;
+    case 2:
+        apc.SetSource(2);
+        break;
+    case 3:
+        apc.SetSource(3);
+        break;
+    case 4:
+        apc.SetSource(4);
+        break;
     }
-    else if (sourceBtn.getButtonText() == "Karplus Strong")
-    {
-        sourceBtn.setButtonText("Triangle Wave");
-    }
-    else if (sourceBtn.getButtonText() == "Triangle Wave")
-    {
-        sourceBtn.setButtonText("Square Wave");
-    }
-    else
-    {
-        sourceBtn.setButtonText("Error");
-    }
-
-    apc.NextSource();
 }
 
 void GUIComponent::samplerateChanged()
