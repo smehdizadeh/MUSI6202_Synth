@@ -41,22 +41,21 @@ public:
     void getNextAudioBlock(const juce::AudioSourceChannelInfo& bufferToFill) override;
     void releaseResources() override;
 
-    //called by GUIComponent when user releases a key
-    ; //called by GUIComponent when user presses a key
-    void SetNumHarmonics(float); //Set number of harmonics for additive synthesis
-    void SetPlaying(bool); //Turn synth on or off
-    void ToggleReverb();
-    void SetFrq(double); //Set frequency of synthesizer pitch
-
-    //Set the octave that the synth plays in
-    void SetTranspositionVal(double);
-
-    void SetLPFCutoff(float); //Set the LPF cutoff frequency
-
-    void SetSource(int); //called by GUIComponent when user changes synth sound source/osc
+    //Parameters to set via the GUI
+    void setFrq(double); //Set frequency of synthesizer pitch
+    void setTranspositionVal(double); //Set Octave
+    void setPlaying(bool); //Turn synth on or off
+    void toggleReverb(); //Toggles reverb
     void setSampleRate(float newSampRate); //called by GUIComponent when user changes samp rate
+    void setSource(int); //called by GUIComponent when user changes synth sound source/osc
+    void setNumHarmonics(float); //Set number of harmonics for additive synthesis
+    void setLPFCutoff(float); //Set the LPF cutoff frequency
+    void setCombFilterVal(int);
+    void setFlangerFrq(float);
+    void setChorusFrq(float);
+    void setVibratoFrq(float);
 
-    enum Source
+    enum class Source
     {
         karplus,
         sine, 
@@ -65,29 +64,59 @@ public:
         numSources
     };
 
+    enum class Effects
+    {
+        none,
+        reverb,
+        lpf,
+        comb,
+        flanger,
+        chorus,
+        vibrato,
+        numEffects
+    };
+
+    //signal pipeline variables (needs to be public for GUI component implementation)
+    Effects* effects;
+    void setEffect(Effects&, int);
+    void ModuleManager(Effects*, juce::AudioBuffer<float>&, int, int, float*, float, float);
+    
+
 private:
     //=========================================================================
     void changeSampleRate(float* pfAudio, int numSamples); //called within APC during getNextAudioBlock to change the samp rate at the output
-    
+    void applyReverb(juce::AudioBuffer<float>&, int, int);
+    void applyMovingAverageFilter(float*, int, float, float);
+    void applyCombFilter();
+    void applyFlanger();
+    void applyChorus();
+    void applyVibrato();
+
     //=========================================================================
     float* m_pfSoundArray;
-
-    double m_dFreq; // Frequency of note
-    int m_iNumKeysDown; // used for synth I/O logic
-    bool m_bPlaying; // Is the synth playing?
-    float m_fNumHarmonics; //Number of harmonics in additive synthesis
-    Source m_kSource; // Wave gen
-
-    float m_fLpfCutoff; //Cutoff frequency of the LPF
-    bool m_bReverbOn; //Is the reverb on?
-
-    float m_fSampleRate; //internal sample rate
-    float m_fOutputSampRate; //output sample rate
-
     int m_iNumChannels;
 
+    //Sound Generation variables
+    double m_dWaveSamp; //Wave samples
+    int m_iNumKeysDown; // used for synth I/O logic
+    Source m_kSource; // Wave gen
+    double m_dFreq; // Frequency of note
+    double m_dTransposeVal; //Octave
+    bool m_bPlaying; // Is the synth playing?
+    float m_fNumHarmonics; //Number of harmonics in additive synthesis
     
+    //Effects variables
+    bool m_bReverbOn; //Is the reverb on?
+    float m_fLpfCutoff; //Cutoff frequency of the LPF
+    int m_iCombFilterVal; //Comb filter: number of delayed samples
+    float m_fFlangerFrq; //Flanger frequency
+    float m_fChorusFrq; //Chorus frequency
+    float m_fVibratoFrq; // Vibrato freqency
 
+    //Sample rate variables
+    float m_fSampleRate; //internal sample rate
+    float m_fOutputSampRate; //output sample rate
+   
     juce::AudioBuffer<float> audioBuffer; //for temporary storage and processings
     juce::ADSR env; //envelope to apply to sound gen
     juce::IIRFilter antiAlias; //anti aliasing filter for downsampling
@@ -96,10 +125,7 @@ private:
     FilterComponent* filt;
     KarplusStrong* KS;
     ReverbComponent* revrb;
-
     Additive* Add;
-    double m_dWaveSamp; //Wave samples
-    double m_dTransposeVal;
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (AudioProcessingComponent)
 };
