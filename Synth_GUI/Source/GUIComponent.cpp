@@ -63,6 +63,12 @@ GUIComponent::GUIComponent(AudioProcessingComponent& c) :
     bitdepthMenu.onChange = [this] {bitdepthChanged(); };
     bitdepthMenu.setSelectedId(1); //default 32 bit
 
+    //dither
+    addAndMakeVisible(ditherButton);
+    ditherButton.setButtonText("Dither");
+    ditherButton.setState(juce::Button::ButtonState::buttonNormal);
+    ditherButton.onClick = [this] {apc.setDither(ditherButton.getToggleState()); };
+
     //Slider Labels and directions
     addAndMakeVisible(lpfCutoffLabel);
     lpfCutoffLabel.setFont(juce::Font{ 16.0f });
@@ -117,6 +123,7 @@ void GUIComponent::resized()
     chooseBitDepth.setBounds(getWidth() - 300, 10, getWidth() - 20, 20);
     samplerateMenu.setBounds(10, 40, 100, 20);
     bitdepthMenu.setBounds(getWidth() - 300, 40, 100, 20);
+    ditherButton.setBounds(getWidth() - 175, 40, 100, 20);
 
     sourceBtn.setBounds(30, 70, getWidth() - 60, 20);
     lpfCutoff.setBounds(10, 100, getWidth() - 20, 20);

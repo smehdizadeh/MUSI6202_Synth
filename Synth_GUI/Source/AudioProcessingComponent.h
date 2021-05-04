@@ -56,6 +56,7 @@ public:
     void NextSource(); //called by GUIComponent when user changes synth sound source/osc
     void setSampleRate(float newSampRate); //called by GUIComponent when user changes samp rate
     void setBitDepth(float newBitDepth); //called by GUIComponent when user changes bit depth
+    void setDither(bool enableDither); //called by GUIComponent when user toggles dither button
 
     enum Source
     {
@@ -81,6 +82,7 @@ private:
 
     float m_fLpfCutoff; //Cutoff frequency of the LPF
     bool m_bReverbOn; //Is the reverb on?
+    bool m_bDitherOn; //Is dither enabled?
 
     float m_fSampleRate; //internal sample rate
     float m_fOutputSampRate; //output sample rate
@@ -93,6 +95,9 @@ private:
     juce::AudioBuffer<float> audioBuffer; //for temporary storage and processings
     juce::ADSR env; //envelope to apply to sound gen
     juce::IIRFilter antiAlias; //anti aliasing filter for downsampling
+    juce::Random random; //noise source for dither
+    juce::AudioDeviceManager manager;
+    juce::AudioDeviceManager::AudioDeviceSetup audioSetup;
 
     // Modules
     FilterComponent* filt;

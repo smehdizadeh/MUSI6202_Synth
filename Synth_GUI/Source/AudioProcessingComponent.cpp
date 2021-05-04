@@ -32,10 +32,12 @@ AudioProcessingComponent::AudioProcessingComponent() :
     m_fLpfCutoff(3000),
     m_fNumHarmonics(200),
     m_bReverbOn(false),
+    m_bDitherOn(false),
     m_dTransposeVal(0)
 {
     // In your constructor, you should add any child components, and
     // initialise any special settings that your component needs.
+    manager.initialise(0, m_iNumChannels, nullptr, true);
     setAudioChannels(0, m_iNumChannels); // no inputs, two outputs
     m_kSource = Source::square;
 }
@@ -93,6 +95,10 @@ void AudioProcessingComponent::prepareToPlay(int samplesPerBlockExpected, double
   
     audioBuffer.setSize(1, samplesPerBlockExpected); //mono working buffer
     audioBuffer.clear();
+
+    audioSetup.bufferSize = samplesPerBlockExpected;
+    audioSetup.sampleRate = sampleRate;
+    manager.setAudioDeviceSetup(audioSetup, false);
 }
 
 
@@ -231,6 +237,11 @@ void AudioProcessingComponent::setBitDepth(float newBitDepth)
     m_fOutputBitDepth = newBitDepth;
 }
 
+void AudioProcessingComponent::setDither(bool enableDither)
+{
+    m_bDitherOn = enableDither;
+}
+
 void AudioProcessingComponent::changeSampleRate(float* pfAudio, int numSamples)
 {
     //first check for default/no change case  (48k)
@@ -242,6 +253,11 @@ void AudioProcessingComponent::changeSampleRate(float* pfAudio, int numSamples)
         antiAlias.reset();
         antiAlias.setCoefficients(juce::IIRCoefficients::makeLowPass(m_fSampleRate, m_fOutputSampRate * 0.5));
         antiAlias.processSamples(pfAudio, numSamples);
+        
+        //update the sample rate in the device manager
+        audioSetup.sampleRate = m_fOutputSampRate;
+        audioSetup.bufferSize = m_fOutputSampRate * 0.01;
+        manager.setAudioDeviceSetup(audioSetup, false);
 
         if (m_fOutputSampRate == 16000.0) //then check for the integer factor case (16k)
         {
@@ -266,11 +282,37 @@ void AudioProcessingComponent::changeBitDepth(float* pfAudio, int numSamples)
     {
         float M = pow(2, m_fOutputBitDepth); //number of steps
         float delta = 2.0 / M; //step size
-
-        for (int i = 0; i < numSamples; i++) //quantize block
+        
+        if (m_bDitherOn) //if dither is on...
         {
-            pfAudio[i] = (floor(pfAudio[i] / delta) * delta) + (delta * 0.5); //mid rise
-            //pfAudio[i] = (floor(pfAudio[i] / delta) * delta); //mid tread
+            for (int i = 0; i < numSamples; i++) //quantize block
+            {
+                float r1 = random.nextFloat(); //generate random sample
+                float a = -1.; //triangle noise bounds
+                float b = 1.;
+                float r = 0; //random sample
+                if (r1 < 0.5) {
+                    r = a + sqrt(r1 * (b - a)*(0.0 - a));
+                }
+                else {
+                    r = b - sqrt((1 - r1) * (b - a) * b);
+                }
+
+                float rdelta = 2.0 / (pow(2, 32.0 - m_fOutputBitDepth)); //step size for noise bit depth
+                r = (floor(r / rdelta) * rdelta) + (rdelta * 0.5); //get r to the right bit size
+
+                pfAudio[i] = pfAudio[i] + r; //add noise to the current sample
+                pfAudio[i] = (floor(pfAudio[i] / delta) * delta) + (delta * 0.5); //mid rise
+                //pfAudio[i] = (floor(pfAudio[i] / delta) * delta); //mid tread
+            }
+        }
+        else
+        {
+            for (int i = 0; i < numSamples; i++) //quantize block
+            {
+                pfAudio[i] = (floor(pfAudio[i] / delta) * delta) + (delta * 0.5); //mid rise
+                //pfAudio[i] = (floor(pfAudio[i] / delta) * delta); //mid tread
+            }
         }
     }
 }

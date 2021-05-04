@@ -70,6 +70,7 @@ private:
     //==========================================================================
     juce::Slider lpfCutoff; //Slider for LPF cutoff frequency
     juce::TextButton sourceBtn; //Button to change the source
+    juce::ToggleButton ditherButton; //toggle dithering on/off
 
     juce::Label selNumHarms; //Input box for specifying number of harmonics in additive synthesis
     juce::Label chooseSampRate{ {}, "Select output sample rate..." };
