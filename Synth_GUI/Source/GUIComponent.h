@@ -31,6 +31,7 @@ public:
     bool keyStateChanged(bool, Component*) override; //Used to detect key releases
 
     void samplerateChanged(); //handles changes to the sample rate selection menu
+    void bitdepthChanged(); //handles changes to the bit depth selection menu
 
     enum class Note
     {
@@ -92,6 +93,11 @@ private:
     //for configuring sample rate
     juce::ComboBox samplerateMenu;
     juce::Label chooseSampRate{ {}, "Select output sample rate..." };
+
+    //for configuring bit depth and dithering
+    juce::ComboBox bitdepthMenu;
+    juce::Label chooseBitDepth{ {}, "Select output bit depth..." };
+    juce::ToggleButton ditherButton; //toggle dithering on/off
 
     //for configuring source
     juce::ComboBox sourceMenu; //Menu to change the source
