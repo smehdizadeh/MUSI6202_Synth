@@ -13,6 +13,8 @@
 #include <JuceHeader.h>
 #include "SourceGeneration.h"
 #include "FilterComponent.h"
+#include "ModEffectsComponent.h"
+
 #include "ReverbComponent.h"
 #include "ModEffectsComponent.h"
 #include <windows.h> //For Debug macro
@@ -48,7 +50,7 @@ public:
     void setPlaying(bool); //Turn synth on or off
     void setSampleRate(float newSampRate); //called by GUIComponent when user changes samp rate
     void setSource(int); //called by GUIComponent when user changes synth sound source/osc
-    void setNumHarmonics(float); //Set number of harmonics for additive synthesis
+    void setNumHarmonics(int); //Set number of harmonics for additive synthesis
     void setLPFCutoff(float); //Set the LPF cutoff frequency
     void setCombFilterVal(int); //Set comb filter number of delayed samples
     void setFlangerFrq(float); //Set flanger frequency
@@ -119,15 +121,16 @@ private:
     juce::AudioBuffer<float> audioBuffer; //for temporary storage and processings
     juce::ADSR env; //envelope to apply to sound gen
     juce::IIRFilter antiAlias; //anti aliasing filter for downsampling
+    juce::AudioDeviceManager manager;
+    juce::AudioDeviceManager::AudioDeviceSetup audioSetup;
+
 
     // Modules
     FilterComponent* filt;
+    ModEffectsComponent* mod;
     KarplusStrong* KS;
     ReverbComponent* revrb;
     Additive* Add;
-    ModEffectsComponent* mod;
-
-    juce::AudioDeviceManager manager;
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (AudioProcessingComponent)
 };

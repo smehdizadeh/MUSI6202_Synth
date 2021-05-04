@@ -15,10 +15,11 @@ void GUIComponent::Start()
     addAndMakeVisible(chooseSampRate);
     addAndMakeVisible(samplerateMenu);
     addAndMakeVisible(sourceMenu);
-    addAndMakeVisible(numHarmsLabel);
-    addAndMakeVisible(numHarms);
+    addAndMakeVisible(chooseSource);
     addAndMakeVisible(lpfCutoffLabel);
     addAndMakeVisible(lpfCutoff);
+    addAndMakeVisible(numHarmsLabel);
+    addAndMakeVisible(numHarms);
     addAndMakeVisible(combFilterLabel);
     addAndMakeVisible(combFilter);
     addAndMakeVisible(flangerFrqLabel);
@@ -39,15 +40,21 @@ void GUIComponent::Start()
     addAndMakeVisible(fifthEffectLabel);
     addAndMakeVisible(sixthEffect);
     addAndMakeVisible(sixthEffectLabel);
+    addAndMakeVisible(helpText);
 
     startButton.setVisible(false);
+    numHarms.setVisible(false);
+    numHarmsLabel.setVisible(false);
+    UntoggleAllGuis();
 }
 
 //==============================================================================
 GUIComponent::GUIComponent(AudioProcessingComponent& c) :
     apc(c), //this is how we get the GUI to communicate with the APC
     m_bTabReleased(false),
-    m_bHelpTextOn(false)
+    m_bHelpTextOn(true),
+    m_iX(250),
+    m_iY(250)
 {   
     //Start Button
     addAndMakeVisible(startButton);
@@ -78,44 +85,50 @@ GUIComponent::GUIComponent(AudioProcessingComponent& c) :
     //for configuring the number of harmonics
     numHarmsLabel.setFont(juce::Font{ 16.0f });
     numHarms.setSliderStyle(juce::Slider::Rotary);
-    numHarms.setRange(1, 200);
-    numHarms.setValue(20);
-    numHarms.onValueChange = [this] {};
+    numHarms.setRange(1, 100);
+    numHarms.setNumDecimalPlacesToDisplay(0);
+    numHarms.setValue(100);
+    numHarms.onValueChange = [this] { apc.setNumHarmonics((int)numHarms.getValue()); };
     
     //for configuring LPF
     lpfCutoffLabel.setFont(juce::Font{ 16.0f });
     lpfCutoff.setSliderStyle(juce::Slider::Rotary);
-    lpfCutoff.setRange(22, 10000);
-    lpfCutoff.setValue(3000);
+    lpfCutoff.setRange(22, 5000);
+    lpfCutoff.setNumDecimalPlacesToDisplay(2);
+    lpfCutoff.setValue(5000);
     lpfCutoff.onValueChange = [this] { apc.setLPFCutoff(lpfCutoff.getValue()); };
-
 
     // ===== Range and init value should be changed to something more accurate for comb filter, flanger, chorus, and vibrato ===== //
     //for configuring comb filter
     combFilterLabel.setFont(juce::Font{ 16.0f });
     combFilter.setSliderStyle(juce::Slider::Rotary);
-    combFilter.setRange(100, 1000); //Range and init value can and should be changed to something more accurate
-    combFilter.setValue(500);
+    combFilter.setRange(0, 100); 
+    combFilter.setNumDecimalPlacesToDisplay(0);
+    combFilter.setValue(0);
     combFilter.onValueChange = [this] { apc.setCombFilterVal((int)combFilter.getValue()); };
 
     //for configuring flanger
     flangerFrqLabel.setFont(juce::Font{ 16.0f });
     flangerFrq.setSliderStyle(juce::Slider::Rotary);
-    flangerFrq.setRange(100, 1000);
-    chorusFrq.setValue(500);
+    flangerFrq.setRange(0, 100);
+    flangerFrq.setNumDecimalPlacesToDisplay(2);
+    chorusFrq.setValue(0);
     flangerFrq.onValueChange = [this] { apc.setFlangerFrq(flangerFrq.getValue()); };
 
     //for configuring chorus
     chorusFrqLabel.setFont(juce::Font{ 16.0f });
     chorusFrq.setSliderStyle(juce::Slider::Rotary);
-    chorusFrq.setRange(100, 1000);
-    chorusFrq.setValue(500);
+    chorusFrq.setRange(0, 100);
+    chorusFrq.setNumDecimalPlacesToDisplay(2);
+    chorusFrq.setValue(0);
     chorusFrq.onValueChange = [this] { apc.setChorusFrq(chorusFrq.getValue()); };
 
     //for configuring vibrato
     vibratoFrqLabel.setFont(juce::Font{ 16.0f });
-    vibratoFrq.setRange(100, 1000);
-    vibratoFrq.setValue(500);
+    vibratoFrq.setSliderStyle(juce::Slider::Rotary);
+    vibratoFrq.setRange(0, 100);
+    vibratoFrq.setNumDecimalPlacesToDisplay(2);
+    vibratoFrq.setValue(0);
     vibratoFrq.onValueChange = [this] { apc.setVibratoFrq(vibratoFrq.getValue()); };
 
     //for configuring help text
@@ -131,7 +144,7 @@ GUIComponent::GUIComponent(AudioProcessingComponent& c) :
     firstEffect.addItem("Flanger", 5);
     firstEffect.addItem("Chorus", 6);
     firstEffect.addItem("Vibrato", 7);
-    firstEffect.setSelectedId(0); //default none
+    firstEffect.setSelectedId(1); //default none
     firstEffect.onChange = [this] { apc.setEffect(apc.effects[0], firstEffect.getSelectedId()); };
 
     //second effect
@@ -143,7 +156,7 @@ GUIComponent::GUIComponent(AudioProcessingComponent& c) :
     secondEffect.addItem("Flanger", 5);
     secondEffect.addItem("Chorus", 6);
     secondEffect.addItem("Vibrato", 7);
-    secondEffect.setSelectedId(0); //default none
+    secondEffect.setSelectedId(1); //default none
     secondEffect.onChange = [this] { apc.setEffect(apc.effects[1], secondEffect.getSelectedId()); };
 
     //third effect
@@ -155,7 +168,7 @@ GUIComponent::GUIComponent(AudioProcessingComponent& c) :
     thirdEffect.addItem("Flanger", 5);
     thirdEffect.addItem("Chorus", 6);
     thirdEffect.addItem("Vibrato", 7);
-    thirdEffect.setSelectedId(0); //default none
+    thirdEffect.setSelectedId(1); //default none
     thirdEffect.onChange = [this] { apc.setEffect(apc.effects[2], thirdEffect.getSelectedId()); };
 
     //fourth effect
@@ -167,7 +180,7 @@ GUIComponent::GUIComponent(AudioProcessingComponent& c) :
     fourthEffect.addItem("Flanger", 5);
     fourthEffect.addItem("Chorus", 6);
     fourthEffect.addItem("Vibrato", 7);
-    fourthEffect.setSelectedId(0); //default none
+    fourthEffect.setSelectedId(1); //default none
     fourthEffect.onChange = [this] { apc.setEffect(apc.effects[3], fourthEffect.getSelectedId()); };
 
     //fifth effect
@@ -179,7 +192,7 @@ GUIComponent::GUIComponent(AudioProcessingComponent& c) :
     fifthEffect.addItem("Flanger", 5);
     fifthEffect.addItem("Chorus", 6);
     fifthEffect.addItem("Vibrato", 7);
-    fifthEffect.setSelectedId(0); //default none
+    fifthEffect.setSelectedId(1); //default none
     fifthEffect.onChange = [this] { apc.setEffect(apc.effects[4], fifthEffect.getSelectedId()); };
 
     //sixth effect
@@ -191,7 +204,7 @@ GUIComponent::GUIComponent(AudioProcessingComponent& c) :
     sixthEffect.addItem("Flanger", 5);
     sixthEffect.addItem("Chorus", 6);
     sixthEffect.addItem("Vibrato", 7);
-    sixthEffect.setSelectedId(0); //default none
+    sixthEffect.setSelectedId(1); //default none
     sixthEffect.onChange = [this] { apc.setEffect(apc.effects[5], sixthEffect.getSelectedId()); };
 }
 
@@ -227,16 +240,32 @@ void GUIComponent::resized() //GUI positions on screen
     samplerateMenu.setBounds(10, 40, 100, 20);
 
     // source
-    chooseSource.setBounds(10, 70, getWidth() - 20, 20);
-    sourceMenu.setBounds(10, 100, 100, 20);
+    chooseSource.setBounds(10, 100, getWidth() - 20, 20);
+    sourceMenu.setBounds(10, 130, 100, 20);
+
+    //Additive Synthesis Number of harmonics
+    numHarms.setBounds(10, 150, 150, 150);
+    numHarmsLabel.setBounds(10, 180, getWidth() - 20, 20);
 
     // low pass filter
-    lpfCutoff.setBounds(0, 150, 150, 150);
-    lpfCutoffLabel.setBounds(150, 155, getWidth() - 20, 20);
+    lpfCutoff.setBounds(m_iX, m_iY, 150, 150);
+    lpfCutoffLabel.setBounds(m_iX, m_iY + 10, getWidth() - 20, 20);
 
-    //comb filter
+    //Comb
+    combFilter.setBounds(m_iX, m_iY, 150, 150);
+    combFilterLabel.setBounds(m_iX, m_iY + 10, getWidth() - 20, 20);
 
-    //reverb
+    //Flanger
+    flangerFrq.setBounds(m_iX, m_iY, 150, 150);
+    flangerFrqLabel.setBounds(m_iX, m_iY + 10, getWidth() - 20, 20);
+
+    //Chorus
+    chorusFrq.setBounds(m_iX, m_iY, 150, 150);
+    chorusFrqLabel.setBounds(m_iX, m_iY + 10, getWidth() - 20, 20);
+
+    //Vibrato
+    vibratoFrq.setBounds(m_iX, m_iY, 150, 150);
+    vibratoFrqLabel.setBounds(m_iX, m_iY + 10, getWidth() - 20, 20);
 
     //Effect combo boxes and labels
     firstEffect.setBounds(550, 50, 100, 20);
@@ -258,16 +287,95 @@ void GUIComponent::resized() //GUI positions on screen
 
 bool GUIComponent::keyPressed(const juce::KeyPress& key, juce::Component* originatingComponent)
 {
-    if (key == juce::KeyPress::escapeKey)
-    {
-        ToggleHelp();
-    }
 
-    else
-    {
-        GetKey(key.getKeyCode());
+        switch (key.getKeyCode())
+        {
+        case (int)Note::c:
+            apc.setFrq(48);
+            break;
+        case (int)Note::cs:
+            apc.setFrq(49);
+            break;
+        case (int)Note::d:
+            apc.setFrq(50);
+            break;
+        case (int)Note::ds:
+            apc.setFrq(51);
+            break;
+        case (int)Note::e:
+            apc.setFrq(52);
+            break;
+        case (int)Note::f:
+            apc.setFrq(53);
+            break;
+        case (int)Note::fs:
+            apc.setFrq(54);
+            break;
+        case (int)Note::g:
+            apc.setFrq(55);
+            break;
+        case (int)Note::gs:
+            apc.setFrq(56);
+            break;
+        case (int)Note::a:
+            apc.setFrq(57);
+            break;
+        case (int)Note::as:
+            apc.setFrq(58);
+            break;
+        case (int)Note::b:
+            apc.setFrq(59);
+            break;
+        case (int)Note::cOct:
+            apc.setFrq(60);
+            break;
+        case (int)Note::csOct:
+            apc.setFrq(61);
+            break;
+        case (int)Note::dOct:
+            apc.setFrq(62);
+            break;
+        case (int)Note::dsOct:
+            apc.setFrq(63);
+            break;
+        case (int)Note::eOct:
+            apc.setFrq(64);
+            break;
+        case (int)Tranpositions::downTwoOct:
+            apc.setTranspositionVal(-24);
+            break;
+        case (int)Tranpositions::downOneOct:
+            apc.setTranspositionVal(-12);
+            break;
+        case (int)Tranpositions::level:
+            apc.setTranspositionVal(0);
+            break;
+        case (int)Tranpositions::upOneOct:
+            apc.setTranspositionVal(12);
+            break;
+        case (int)Tranpositions::upTwoOct:
+            apc.setTranspositionVal(24);
+            break;
+        case (int)EffectGuis::lpfGui:
+            ToggleLpfGui();
+            break;
+        case (int)EffectGuis::combGui:
+            ToggleCombGui();
+            break;
+        case (int)EffectGuis::flangerGui:
+            ToggleFlangerGui();
+            break;
+        case (int)EffectGuis::chorusGui:
+            ToggleChorusGui();
+            break;
+        case (int)EffectGuis::vibratoGui:
+            ToggleVibratoGui();
+            break;
+        default:
+            break;
+        }
+
         return true;
-    }
 }
 
 bool GUIComponent::keyStateChanged(bool isKeyDown, juce::Component* originatingComponent)
@@ -281,11 +389,6 @@ bool GUIComponent::keyStateChanged(bool isKeyDown, juce::Component* originatingC
 
 void GUIComponent::ToggleSynth()   
 {
-    if (!key.isKeyCurrentlyDown((juce::KeyPress::tabKey)))
-    {
-        m_bTabReleased = true;
-    }
-
     if (key.isKeyCurrentlyDown((int)Note::c))
     {
 
@@ -360,81 +463,6 @@ void GUIComponent::ToggleSynth()
     }
 }
 
-void GUIComponent::GetKey(int press)
-{
-    switch (press)
-    {
-    case (int)Tranpositions::downTwoOct:
-        apc.setTranspositionVal(-24);
-        break;
-    case (int)Tranpositions::downOneOct:
-        apc.setTranspositionVal(-12);
-        break;
-    case (int)Tranpositions::level:
-        apc.setTranspositionVal(0);
-        break;
-    case (int)Tranpositions::upOneOct:
-        apc.setTranspositionVal(12);
-        break;
-    case (int)Tranpositions::upTwoOct:
-        apc.setTranspositionVal(24);
-        break;
-    case (int)Note::c:
-        apc.setFrq(48);
-        break;
-    case (int)Note::cs:
-        apc.setFrq(49);
-        break;
-    case (int)Note::d:
-        apc.setFrq(50);
-        break;
-    case (int)Note::ds:
-        apc.setFrq(51);
-        break;
-    case (int)Note::e:
-        apc.setFrq(52);
-        break;
-    case (int)Note::f:
-        apc.setFrq(53);
-        break;
-    case (int)Note::fs:
-        apc.setFrq(54);
-        break;
-    case (int)Note::g:
-        apc.setFrq(55);
-        break;
-    case (int)Note::gs:
-        apc.setFrq(56);
-        break;
-    case (int)Note::a:
-        apc.setFrq(57);
-        break;
-    case (int)Note::as:
-        apc.setFrq(58);
-        break;
-    case (int)Note::b:
-        apc.setFrq(59);
-        break;
-    case (int)Note::cOct:
-        apc.setFrq(60);
-        break;
-    case (int)Note::csOct:
-        apc.setFrq(61);
-        break;
-    case (int)Note::dOct:
-        apc.setFrq(62);
-        break;
-    case (int)Note::dsOct:
-        apc.setFrq(63);
-        break;
-    case (int)Note::eOct:
-        apc.setFrq(64);
-        break;
-    default:
-        break;
-    }
-}
-
 void GUIComponent::sourceChanged()
 {
 
@@ -442,15 +470,23 @@ void GUIComponent::sourceChanged()
     {
     case 1:
         apc.setSource(1);
+        numHarmsLabel.setVisible(false);
+        numHarms.setVisible(false);
         break;
     case 2:
         apc.setSource(2);
+        numHarmsLabel.setVisible(false);
+        numHarms.setVisible(false);
         break;
     case 3:
         apc.setSource(3);
+        numHarmsLabel.setVisible(true);
+        numHarms.setVisible(true);
         break;
     case 4:
         apc.setSource(4);
+        numHarmsLabel.setVisible(true);
+        numHarms.setVisible(true);
         break;
     }
 }
@@ -477,17 +513,55 @@ void GUIComponent::samplerateChanged()
     }
 }
 
-void GUIComponent::ToggleHelp()
+void GUIComponent::ToggleLpfGui()
 {
-    if (m_bHelpTextOn)
-    {
-        helpText.setVisible(false);
-        m_bHelpTextOn = false;
-    }
-    else
-    {
-        helpText.setVisible(true);
-        m_bHelpTextOn = true;
-    }
-}
+    UntoggleAllGuis();
 
+    lpfCutoffLabel.setVisible(true);
+    lpfCutoff.setVisible(true);
+}
+void GUIComponent::ToggleReverbGui()
+{
+    UntoggleAllGuis();
+}
+void GUIComponent::ToggleCombGui()
+{
+    UntoggleAllGuis();
+
+    combFilter.setVisible(true);
+    combFilterLabel.setVisible(true);
+}
+void GUIComponent::ToggleFlangerGui()
+{
+    UntoggleAllGuis();
+
+    flangerFrqLabel.setVisible(true);
+    flangerFrq.setVisible(true);
+}
+void GUIComponent::ToggleChorusGui()
+{
+    UntoggleAllGuis();
+
+    chorusFrqLabel.setVisible(true);
+    chorusFrq.setVisible(true);
+}
+void GUIComponent::ToggleVibratoGui()
+{
+    UntoggleAllGuis();
+
+    vibratoFrqLabel.setVisible(true);
+    vibratoFrq.setVisible(true);
+}
+void GUIComponent::UntoggleAllGuis()
+{
+    lpfCutoffLabel.setVisible(false);
+    lpfCutoff.setVisible(false);
+    combFilter.setVisible(false);
+    combFilterLabel.setVisible(false);
+    flangerFrqLabel.setVisible(false);
+    flangerFrq.setVisible(false);
+    chorusFrqLabel.setVisible(false);
+    chorusFrq.setVisible(false);
+    vibratoFrqLabel.setVisible(false);
+    vibratoFrq.setVisible(false);
+}
