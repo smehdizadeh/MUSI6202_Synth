@@ -71,7 +71,7 @@ void AudioProcessingComponent::prepareToPlay(int samplesPerBlockExpected, double
 
     filt = new FilterComponent(m_fSampleRate); //create filter module
     revrb = new ReverbComponent(m_fSampleRate, samplesPerBlockExpected); //create reverb module
-    mod = new ModEffectsComponent(m_fSampleRate);
+    mod = new ModEffectsComponent(m_fSampleRate); // create modulated effects module
 
     // Code for Karplus Strong Algorithm 
     KS = new KarplusStrong(m_fSampleRate); //create KS generator
@@ -138,7 +138,7 @@ void AudioProcessingComponent::getNextAudioBlock(const juce::AudioSourceChannelI
 
     // CUTOFF RANGE IS 22 Hz - 20 kHz, GAIN RANGE IS 0.0 - 1.0
     filt->processMovingAvgFilt(p, p, bufferToFill.numSamples, filt->GetCutoffFreq(), 0.9); //LP Filter noise
-    mod->processFlanger(p, p, bufferToFill.numSamples, 2.0);
+    mod->processChorus(p, p, bufferToFill.numSamples, 2.0);
 
 
     // CONVOLUTIONAL REVERB TESTING.. PRESS TAB TO TOGGLE REVERB ON/OFF

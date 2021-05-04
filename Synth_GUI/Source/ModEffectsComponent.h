@@ -28,7 +28,8 @@ public:
         m_fSampleRate(fSampleRate),
         m_iBufSize(1000),
         m_fPhiVibrato(0),
-        m_fPhiFlange(0)
+        m_fPhiFlange(0),
+        m_fPhiChorus(0)
 
     {
         // In your constructor, you should add any child components, and
@@ -43,6 +44,7 @@ public:
         m_fSampleRate = 0;
         m_fPhiVibrato = 0;
         m_fPhiFlange = 0;
+        m_fPhiChorus = 0;
         //delete lfo;
         delete buf;
         m_iBufSize = 0;
@@ -74,7 +76,6 @@ public:
                 m_fPhiFlange = m_fPhiFlange - 1;
             }
 
-
             ppfOutputBuffer[sample] = output;
         }
     }
@@ -101,6 +102,35 @@ public:
             ppfOutputBuffer[sample] = output;
         }
     }
+    void processChorus(float* ppfInputBuffer, float* ppfOutputBuffer, int iBufferSize, float chorusFrequency)
+    {
+        float deltaPhi = chorusFrequency / (m_fSampleRate);
+        
+        int A = static_cast <int>(0.002 * m_fSampleRate);
+        int M = static_cast<int>(0.002 * m_fSampleRate);
+        float BL = 1.0;
+        float FF = 0.7;
+
+        // CHORUS EFFECT GOES HERE
+        for (int sample = 0; sample < iBufferSize; ++sample)
+        {
+            float curSamp = ppfInputBuffer[sample];
+            // delay the curSamp by an lfo.
+            buf->pushSample(curSamp);
+
+            int delay = static_cast<int>(sin(2 * pi * m_fPhiChorus)*A) + M;
+            float delayed = buf->getDelayed(delay);
+            float output = (curSamp * BL) + (delayed * FF); 
+
+            // increment phi by delta phi for each sample in the loop
+            m_fPhiChorus = m_fPhiChorus + deltaPhi;       
+            while (m_fPhiChorus >= 1) {
+                m_fPhiChorus = m_fPhiChorus - 1;
+            }
+
+            ppfOutputBuffer[sample] = output;
+        }
+    }
 
 private:
     //=======================================================================
@@ -109,6 +139,7 @@ private:
 //    LFOComponent* lfo;
     float m_fPhiVibrato;
     float m_fPhiFlange;
+    float m_fPhiChorus;
 
     RingBuffer* buf;
     int m_iBufSize;
