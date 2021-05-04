@@ -214,10 +214,15 @@ void AudioProcessingComponent::toggleReverb()
         m_bReverbOn = true;
     }
 }
-
+/*
 void AudioProcessingComponent::setSampleRate(float newSampRate)
 {
     m_fOutputSampRate = newSampRate;
+}
+*/
+float AudioProcessingComponent::getSampleRate()
+{
+    return m_fOutputSampRate;
 }
 
 void AudioProcessingComponent::setSource(int source)

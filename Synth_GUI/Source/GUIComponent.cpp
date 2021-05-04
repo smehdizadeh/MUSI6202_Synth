@@ -12,8 +12,7 @@
 
 void GUIComponent::Start()
 {
-    addAndMakeVisible(chooseSampRate);
-    addAndMakeVisible(samplerateMenu);
+    addAndMakeVisible(yourSampRate);
     addAndMakeVisible(chooseBitDepth);
     addAndMakeVisible(bitdepthMenu);
     addAndMakeVisible(ditherButton);
@@ -35,8 +34,11 @@ void GUIComponent::Start()
     addAndMakeVisible(secondEffectLabel);
     addAndMakeVisible(secondEffect);
     addAndMakeVisible(helpText);
+    addAndMakeVisible(sampRateDisplay2);
 
     startButton.setVisible(false);
+    sampRateDisplay1.setVisible(false);
+    sampRateInstruct.setVisible(false);
 }
 
 //==============================================================================
@@ -50,18 +52,20 @@ GUIComponent::GUIComponent(AudioProcessingComponent& c) :
     startButton.setButtonText("Click Here to Start the Synthesizer!");
     startButton.onClick = [this] { Start(); };
 
+    //Sample rate instructions
+    addAndMakeVisible(sampRateInstruct);
+    sampRateInstruct.setFont(juce::Font{ 16.0f });
+    addAndMakeVisible(sampRateDisplay1);
+    sampRateDisplay1.setText(std::to_string(apc.getSampleRate()), juce::NotificationType::dontSendNotification);
+    sampRateDisplay2.setText(std::to_string(apc.getSampleRate()), juce::NotificationType::dontSendNotification);
+    sampRateDisplay1.setFont(juce::Font{ 24.0f });
+    sampRateDisplay2.setFont(juce::Font{ 16.0f });
+
+    yourSampRate.setFont(juce::Font{ 16.0f });
+
     //Keyboard Listeners
     setWantsKeyboardFocus(true);
     addKeyListener(this);
-
-    //for configuring sample rate
-    chooseSampRate.setFont(juce::Font{ 16.0f });
-    samplerateMenu.addItem("48 kHz", 1);
-    samplerateMenu.addItem("44.1 kHz", 2);
-    samplerateMenu.addItem("22.05 kHz", 3);
-    samplerateMenu.addItem("16 kHz", 4);
-    samplerateMenu.onChange = [this] {samplerateChanged(); };
-    samplerateMenu.setSelectedId(1); //default 48k
 
     //for configuring bit depth
     chooseBitDepth.setFont(juce::Font{ 16.0f });
@@ -179,10 +183,14 @@ void GUIComponent::resized() //GUI positions on screen
     //start button
     startButton.setBounds(200, 200, 300, 100);
 
+    //sample rate instructions
+    sampRateInstruct.setBounds(10, getHeight() - 300, getWidth() - 80, 150);
+    sampRateDisplay1.setBounds(10, getHeight() - 150, 100, 100);
+
     // sample rate and bit depth
-    chooseSampRate.setBounds(10, 10, getWidth() - 20, 20);
+    yourSampRate.setBounds(10, 10, getWidth() - 20, 20);
     chooseBitDepth.setBounds(getWidth() - 300, 10, getWidth() - 20, 20);
-    samplerateMenu.setBounds(10, 40, 100, 20);
+    sampRateDisplay2.setBounds(10, 40, 100, 20);
     bitdepthMenu.setBounds(getWidth() - 300, 40, 100, 20);
     ditherButton.setBounds(getWidth() - 175, 40, 100, 20);
 
@@ -403,28 +411,6 @@ void GUIComponent::sourceChanged()
         break;
     case 4:
         apc.setSource(4);
-        break;
-    }
-}
-
-void GUIComponent::samplerateChanged()
-{
-    switch (samplerateMenu.getSelectedId())
-    {
-    case 1: //48k
-        apc.setSampleRate(48000.0);
-        break;
-    case 2: //44.1k
-        apc.setSampleRate(44100.0);
-        break;
-    case 3: //22.05k
-        apc.setSampleRate(22050.0);
-        break;
-    case 4: //16k
-        apc.setSampleRate(16000.0);
-        break;
-    default: //48k
-        apc.setSampleRate(48000.0);
         break;
     }
 }

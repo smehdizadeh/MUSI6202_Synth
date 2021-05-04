@@ -30,7 +30,6 @@ public:
     bool keyPressed(const juce::KeyPress&, juce::Component*) override; // Used to detect key presses
     bool keyStateChanged(bool, Component*) override; //Used to detect key releases
 
-    void samplerateChanged(); //handles changes to the sample rate selection menu
     void bitdepthChanged(); //handles changes to the bit depth selection menu
 
     enum Note
@@ -75,8 +74,10 @@ private:
     juce::TextButton startButton;
 
     //for configuring sample rate
-    juce::ComboBox samplerateMenu;
-    juce::Label chooseSampRate{ {}, "Select output sample rate..." };
+    juce::Label yourSampRate{ {}, "Your output sample rate is..." };
+    juce::Label sampRateInstruct{ {}, "Please make sure your system is using the desired sample rate.\n Sample rate can only be changed in your system settings, not within this App.\n If you would like to change your output sample rate, please quit the App before doing so.\n On Windows this can be done by going to Sounds > Playback > (Select your output device) > Properties > Advanced > (Select the desired sample rate under Default Format) > Apply\n This App only supports sample rates 48k and below.\n\n Your current output sample rate is:" };
+    juce::Label sampRateDisplay1;
+    juce::Label sampRateDisplay2;
 
     //for configuring bit depth and dithering
     juce::ComboBox bitdepthMenu;

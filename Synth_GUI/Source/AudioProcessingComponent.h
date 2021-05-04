@@ -48,7 +48,8 @@ public:
     void setTranspositionVal(double); //Set Octave
     void setPlaying(bool); //Turn synth on or off
     void toggleReverb(); //Toggles reverb
-    void setSampleRate(float newSampRate); //called by GUIComponent when user changes samp rate
+    //void setSampleRate(float newSampRate); //called by GUIComponent when user changes samp rate
+    float getSampleRate(); //called by GUIComponent to display current system sample rate
     void setBitDepth(float newBitDepth); //called by GUIComponent when user changes bit depth
     void setDither(bool enableDither); //called by GUIComponent when user toggles dither button
     void setSource(int); //called by GUIComponent when user changes synth sound source/osc
