@@ -13,30 +13,39 @@
 #include <cmath>
 
 
-
 //==============================================================================
 AudioProcessingComponent::AudioProcessingComponent() :
-    Add(0),
     m_pfSoundArray(0),
+    m_iNumChannels(2),
+
+    m_dWaveSamp(0),
+    m_iNumKeysDown(0),
+    m_kSource(Source::square),
     m_dFreq(0),
+    m_dTransposeVal(0),
+    m_bPlaying(false),
+    m_fNumHarmonics(200),
+
+    m_bReverbOn(false),
+    m_fLpfCutoff(3000),
+    m_iCombFilterVal(500),
+    m_fFlangerFrq(500),
+    m_fChorusFrq(500),
+    m_fVibratoFrq(500),
+
     m_fSampleRate(0),
     m_fOutputSampRate(0),
-    m_iNumChannels(2),
-    KS(0),
+
+    effects(0),
+
     filt(0),
-    m_dWaveSamp(0),
+    KS(0),
     revrb(0),
-    m_bPlaying(false),
-    m_iNumKeysDown(0),
-    m_fLpfCutoff(3000),
-    m_fNumHarmonics(200),
-    m_bReverbOn(false),
-    m_dTransposeVal(0)
+    Add(0)
 {
     // In your constructor, you should add any child components, and
     // initialise any special settings that your component needs.
     setAudioChannels(0, m_iNumChannels); // no inputs, two outputs
-    m_kSource = Source::square;
 }
 
 AudioProcessingComponent::~AudioProcessingComponent()
@@ -45,6 +54,7 @@ AudioProcessingComponent::~AudioProcessingComponent()
     audioBuffer.clear();
 
     delete[] m_pfSoundArray;
+    delete[] effects;
 
     KS->~KarplusStrong();
     KS = 0;
@@ -68,6 +78,7 @@ void AudioProcessingComponent::prepareToPlay(int samplesPerBlockExpected, double
 {
     m_fSampleRate = sampleRate;
     m_fOutputSampRate = sampleRate; 
+    effects = new Effects[6]{ Effects::none, Effects::none, Effects::none, Effects::none, Effects::none, Effects::none };
 
     filt = new FilterComponent(m_fSampleRate); //create filter module
     revrb = new ReverbComponent(m_fSampleRate, samplesPerBlockExpected); //create reverb module
@@ -111,6 +122,12 @@ void AudioProcessingComponent::getNextAudioBlock(const juce::AudioSourceChannelI
             p[sample] = m_dWaveSamp;
         }
 
+        else if (m_kSource == Source::sine)
+        {
+            Add->GetSquareSamp(m_dWaveSamp, m_fSampleRate, 1, m_dFreq, 1);
+            p[sample] = m_dWaveSamp;
+        }
+
         else if (m_kSource == Source::karplus)
         {
             p[sample] = m_pfSoundArray[KS->GetKarpWriteIdx()];
@@ -141,11 +158,15 @@ void AudioProcessingComponent::getNextAudioBlock(const juce::AudioSourceChannelI
     mod->processChorus(p, p, bufferToFill.numSamples, 2.0);
 
 
+    ModuleManager(effects, audioBuffer, 0, bufferToFill.numSamples, p, m_fLpfCutoff, 0.9);
+    
+    //applyMovingAverageFilter(p, bufferToFill.numSamples, m_fLpfCutoff, 0.9); //LP filter
+
     // CONVOLUTIONAL REVERB TESTING.. PRESS TAB TO TOGGLE REVERB ON/OFF
-    if (m_bReverbOn)
+    /*if (m_bReverbOn)
     {
-        revrb->renderNextSubBlock(audioBuffer, 0, bufferToFill.numSamples);
-    }
+        applyReverb(audioBuffer, 0, bufferToFill.numSamples);
+    }*/
 
     // send to the Juce output buffer (ALL CHANNELS)
     for (auto channel = 0; channel < bufferToFill.buffer->getNumChannels(); ++channel)
@@ -163,7 +184,7 @@ void AudioProcessingComponent::releaseResources()
     
 }
 
-void AudioProcessingComponent::SetFrq(double m)
+void AudioProcessingComponent::setFrq(double m)
 {
     m += m_dTransposeVal;
     m_bPlaying = true;
@@ -171,57 +192,85 @@ void AudioProcessingComponent::SetFrq(double m)
     m_dFreq = pow(2, (m - 69) / 12) * 440;
 }
 
-void AudioProcessingComponent::SetTranspositionVal(double val)
+void AudioProcessingComponent::setTranspositionVal(double val)
 {
     m_dTransposeVal = val;
 }
 
-void AudioProcessingComponent::SetNumHarmonics(float val)
-{
-    m_fNumHarmonics = val;
-}
-
-void AudioProcessingComponent::SetPlaying(bool isPlaying)
+void AudioProcessingComponent::setPlaying(bool isPlaying)
 {
     m_bPlaying = isPlaying;
 }
 
-void AudioProcessingComponent::ToggleReverb()
+void AudioProcessingComponent::toggleReverb()
 {
     if (m_bReverbOn)
     {
         m_bReverbOn = false;
     }
-    else 
+    else
     {
         m_bReverbOn = true;
-    }
-}
-
-void AudioProcessingComponent::SetLPFCutoff(float val)
-{
-    m_fLpfCutoff = val;
-}
-
-void AudioProcessingComponent::NextSource()
-{
-    if (m_kSource == Source::square)
-    {
-        m_kSource = Source::karplus;
-    }
-    else if (m_kSource == Source::karplus)
-    {
-        m_kSource = Source::triangle;
-    }
-    else if (m_kSource == Source::triangle)
-    {
-        m_kSource = Source::square;
     }
 }
 
 void AudioProcessingComponent::setSampleRate(float newSampRate)
 {
     m_fOutputSampRate = newSampRate;
+}
+
+void AudioProcessingComponent::setSource(int source)
+{
+    if (source == 1)
+    {
+        m_kSource = Source::karplus;
+    }
+    else if (source == 2)
+    {
+        m_kSource = Source::sine;
+    }
+    else if (source == 3)
+    {
+        m_kSource = Source::square;
+    }
+    else if (source == 4)
+    {
+        m_kSource = Source::triangle;
+    }
+    else
+    {
+        m_kSource = Source::sine;
+    }
+}
+
+void AudioProcessingComponent::setNumHarmonics(float numHarm)
+{
+    m_fNumHarmonics = numHarm;
+}
+
+void AudioProcessingComponent::setLPFCutoff(float frq)
+{
+    m_fLpfCutoff = frq;
+}
+
+void AudioProcessingComponent::setCombFilterVal(int val)
+{
+    m_iCombFilterVal = val;
+}
+
+void AudioProcessingComponent::setFlangerFrq(float frq)
+{
+    m_fFlangerFrq = frq;
+}
+
+void AudioProcessingComponent::setChorusFrq(float frq)
+{
+    m_fChorusFrq = frq;
+}
+
+void AudioProcessingComponent::setVibratoFrq(float frq)
+{
+    m_fVibratoFrq = frq;
 }
 
 void AudioProcessingComponent::changeSampleRate(float* pfAudio, int numSamples)
@@ -246,6 +295,101 @@ void AudioProcessingComponent::changeSampleRate(float* pfAudio, int numSamples)
         else //rational factor
         {
 
+        }
+    }
+}
+
+void AudioProcessingComponent::applyReverb(juce::AudioBuffer<float>& outputAudio, int startSample, int numSamples)
+{
+    revrb->renderNextSubBlock(outputAudio, startSample, numSamples);
+}
+
+void AudioProcessingComponent::applyMovingAverageFilter(float* ppfInputBuffer, int iBuffSize, float fcutoff, float fGain)
+{
+    filt->processMovingAvgFilt(ppfInputBuffer, ppfInputBuffer, iBuffSize, m_fLpfCutoff, 0.9); //LP Filter
+}
+
+void AudioProcessingComponent::applyCombFilter()
+{
+
+}
+
+void AudioProcessingComponent::applyFlanger()
+{
+
+}
+
+void AudioProcessingComponent::applyChorus()
+{
+
+}
+
+void AudioProcessingComponent::applyVibrato()
+{
+
+}
+
+void AudioProcessingComponent::setEffect(AudioProcessingComponent::Effects& effect, int val)
+{
+    switch (val)
+    {
+    case 1:
+        effect = Effects::none;
+        break;
+    case 2:
+        effect = Effects::lpf;
+        break;
+    case 3:
+        effect = Effects::reverb;
+        break;
+    case 4:
+        effect = Effects::comb;
+        break;
+    case 5:
+        effect = Effects::flanger;
+        break;
+    case 6:
+        effect = Effects::chorus;
+        break;
+    case 7:
+        effect = Effects::vibrato;
+        break;
+    default:
+        effect = Effects::none;
+        break;
+
+    }
+}
+
+void AudioProcessingComponent::ModuleManager(Effects* effects, juce::AudioBuffer<float>& outputAudio, int startSample, 
+                                                int numSamples, float* ppfInputBuffer, float fcutoff, float fGain)
+{
+    for (int i = 0; i < 6; i++)
+    {
+        switch (effects[i])
+        {
+        case Effects::none:
+            break;
+        case Effects::reverb:
+            applyReverb(outputAudio, startSample, numSamples);
+            break;
+        case Effects::lpf:
+            applyMovingAverageFilter(ppfInputBuffer, numSamples, fcutoff, fGain);
+            break;
+        case Effects::comb:
+            applyCombFilter();
+            break;
+        case Effects::flanger:
+            applyFlanger();
+            break;
+        case Effects::chorus:
+            applyChorus();
+            break;
+        case Effects::vibrato:
+            applyVibrato();
+            break;
+        default:
+            break;
         }
     }
 }

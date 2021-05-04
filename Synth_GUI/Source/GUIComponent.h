@@ -26,7 +26,7 @@ public:
     void paint(juce::Graphics&) override;
     void resized() override;
 
-    void sourceBtnClicked(); //Source button clicked. Cycle thru possible synth sources
+    void sourceChanged(); //Handles changes to source
     bool keyPressed(const juce::KeyPress&, juce::Component*) override; // Used to detect key presses
     bool keyStateChanged(bool, Component*) override; //Used to detect key releases
 
@@ -66,24 +66,60 @@ public:
 private:
     void ToggleSynth();
     void GetKey(int);
-    //==========================================================================
-    juce::Slider lpfCutoff; //Slider for LPF cutoff frequency
-    juce::TextButton sourceBtn; //Button to change the source
-    juce::Label selNumHarms; //Input box for specifying number of harmonics in additive synthesis
+    void ToggleHelp();
+    void Start();
+    //========================================================================== 
+    
+    //Start Button
+    juce::TextButton startButton;
 
     //for configuring sample rate
-    juce::Label chooseSampRate{ {}, "Select output sample rate..." };
-    juce::Label lpfCutoffLabel{ {}, "LPF Cutoff Frequency Slider" };
-    juce::Label playDirections{ {}, "Play the synth with the bottom two rows of letter keys! Use the number keys 1-5 at the top to change the octave!" };
-    juce::Label reverbDirections{ {}, "Press the tab key to toggle reverb on and off!" };
     juce::ComboBox samplerateMenu;
-    AudioProcessingComponent& apc;
+    juce::Label chooseSampRate{ {}, "Select output sample rate..." };
 
-    juce::KeyPress key; // UI Keyboard presses
+    //for configuring source
+    juce::ComboBox sourceMenu; //Menu to change the source
+    juce::Label chooseSource{ {}, "Select Source..." };
+
+    //for configuring the number of harmonics
+    juce::Slider numHarms; //slider for specifying number of harmonics in additive synthesis
+    juce::Label numHarmsLabel{ {}, "Adjust the number of harmonics" };
+
+    //for LPF
+    juce::Label lpfCutoffLabel{ {}, "LPF Cutoff Frequency Slider" };
+    juce::Slider lpfCutoff; //Slider for LPF cutoff frequency
+
+    //for comb filter
+    juce::Label combFilterLabel{ {}, "Comb Filter Sample Delay" };
+    juce::Slider combFilter;
+
+    //for reverb
     bool m_bTabReleased; // Was tab released?
-    bool m_bInitialized; // Was the source button pressed?
-    bool m_bNotePlayed; // Was a note played? 
-    bool m_bTabPressed;
 
+    //for flanger
+    juce::Label flangerFrqLabel{ {}, "Flanger Frequency" };
+    juce::Slider flangerFrq;
+
+    //for chorus
+    juce::Label chorusFrqLabel{ {}, "Chorus Frequency" };
+    juce::Slider chorusFrq;
+
+    //for vibrato
+    juce::Label vibratoFrqLabel{ {}, "Vibrato Frequency" };
+    juce::Slider vibratoFrq;
+
+    //for help text
+    juce::Label helpText{ {}, "Play the synth with the bottom two rows of letter keys. Use the number keys 1 - 5 at the top to change the octave. Press escape to toggle these instructions on and off." };
+    bool m_bHelpTextOn; //Is the help text visible?
+
+    //for signal pipeline
+    juce::ComboBox firstEffect;
+    juce::Label firstEffectLabel{ {}, "First Effect" };
+    juce::ComboBox secondEffect;
+    juce::Label secondEffectLabel{ {}, "Second Effect" };
+    
+    AudioProcessingComponent& apc; //Audio Processing Component
+    juce::KeyPress key; // UI Keyboard presses
+    
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(GUIComponent)
 };
