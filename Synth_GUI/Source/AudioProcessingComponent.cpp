@@ -43,7 +43,7 @@ AudioProcessingComponent::AudioProcessingComponent() :
     Add(0),
     mod(0)
 {
-    manager.initialise(0, m_iNumChannels, nullptr, true);
+    //manager.initialise(0, m_iNumChannels, nullptr, true);
     setAudioChannels(0, m_iNumChannels); // no inputs, two outputs
 }
 
