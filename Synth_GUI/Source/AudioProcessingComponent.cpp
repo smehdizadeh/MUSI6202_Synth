@@ -86,6 +86,7 @@ void AudioProcessingComponent::prepareToPlay(int samplesPerBlockExpected, double
 
     filt = new FilterComponent(m_fSampleRate); //create filter module
     revrb = new ReverbComponent(m_fSampleRate, samplesPerBlockExpected); //create reverb module
+    mod = new ModEffectsComponent(m_fSampleRate); // create modulated effects module
 
     // Code for Karplus Strong Algorithm 
     KS = new KarplusStrong(m_fSampleRate); //create KS generator
@@ -160,17 +161,7 @@ void AudioProcessingComponent::getNextAudioBlock(const juce::AudioSourceChannelI
     }
     env.applyEnvelopeToBuffer(audioBuffer, 0, bufferToFill.numSamples);
 
-    // CUTOFF RANGE IS 22 Hz - 20 kHz, GAIN RANGE IS 0.0 - 1.0
-
-    ModuleManager(effects, audioBuffer, 0, bufferToFill.numSamples, p, m_fLpfCutoff, 0.9);
-    
-    //applyMovingAverageFilter(p, bufferToFill.numSamples, m_fLpfCutoff, 0.9); //LP filter
-
-    // CONVOLUTIONAL REVERB TESTING.. PRESS TAB TO TOGGLE REVERB ON/OFF
-    /*if (m_bReverbOn)
-    {
-        applyReverb(audioBuffer, 0, bufferToFill.numSamples);
-    }*/
+    ModuleManager(effects, audioBuffer, 0, bufferToFill.numSamples, p, m_fLpfCutoff, 0.9); //handle all effects here
 
     // send to the Juce output buffer (ALL CHANNELS)
     for (auto channel = 0; channel < bufferToFill.buffer->getNumChannels(); ++channel)
@@ -306,6 +297,17 @@ void AudioProcessingComponent::changeSampleRate(float* pfAudio, int numSamples)
         //audioSetup.sampleRate = m_fOutputSampRate;
         //audioSetup.bufferSize = m_fOutputSampRate * 0.01;
         //manager.setAudioDeviceSetup(audioSetup, false);
+
+
+        float samplesPerHold = m_fSampleRate / m_fOutputSampRate;
+
+        // cubic interpolation on an arbitrary interval
+
+
+        audioSetup.sampleRate = m_fOutputSampRate;
+        audioSetup.bufferSize = 480;
+        manager.setAudioDeviceSetup(audioSetup, false);
+
 
         if (m_fOutputSampRate == 16000.0) //then check for the integer factor case (16k)
         {

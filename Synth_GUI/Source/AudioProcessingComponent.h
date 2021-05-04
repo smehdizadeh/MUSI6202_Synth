@@ -13,6 +13,8 @@
 #include <JuceHeader.h>
 #include "SourceGeneration.h"
 #include "FilterComponent.h"
+#include "ModEffectsComponent.h"
+
 #include "ReverbComponent.h"
 #include <windows.h> //For Debug macro
 #include <debugapi.h> //For Debug macro
@@ -131,6 +133,7 @@ private:
 
     // Modules
     FilterComponent* filt;
+    ModEffectsComponent* mod;
     KarplusStrong* KS;
     ReverbComponent* revrb;
     Additive* Add;

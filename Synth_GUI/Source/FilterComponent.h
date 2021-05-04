@@ -74,9 +74,22 @@ public:
         }
     }
     
-    void processCombFilter(float* ppfInputBuffer, float* ppfOutputBuffer, int iBufferSize, float fDelayTime)
+    void processCombFilter(float* ppfInputBuffer, float* ppfOutputBuffer, int iBufferSize, int delayInSamps, float fGain)
     {
-        /* Comb filter implememtation goes here */
+        // inputs: delay in samples to give how many comb bits - maybe a slider for that so we can change it 
+        // Vout[n] = Vin[n] + Vin[n-d]
+
+        for (int sample = 0; sample < iBufferSize; ++sample)
+        {
+            float curSamp = ppfInputBuffer[sample];
+            buf->pushSample(curSamp);
+
+            float output = curSamp + buf->getDelayed(delayInSamps);
+       
+            // the comb filter will have a gain of 2, negate that
+            ppfOutputBuffer[sample] = (1.0 / 2.0) * output * fGain;
+        }
+
     }
 
     float GetCutoffFreq()
