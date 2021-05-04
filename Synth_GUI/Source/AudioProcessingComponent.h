@@ -16,6 +16,7 @@
 #include "ModEffectsComponent.h"
 
 #include "ReverbComponent.h"
+#include "ModEffectsComponent.h"
 #include <windows.h> //For Debug macro
 #include <debugapi.h> //For Debug macro
 
@@ -47,17 +48,16 @@ public:
     void setFrq(double); //Set frequency of synthesizer pitch
     void setTranspositionVal(double); //Set Octave
     void setPlaying(bool); //Turn synth on or off
-    void toggleReverb(); //Toggles reverb
     void setSampleRate(float newSampRate); //called by GUIComponent when user changes samp rate
     void setBitDepth(float newBitDepth); //called by GUIComponent when user changes bit depth
     void setDither(bool enableDither); //called by GUIComponent when user toggles dither button
     void setSource(int); //called by GUIComponent when user changes synth sound source/osc
-    void setNumHarmonics(float); //Set number of harmonics for additive synthesis
+    void setNumHarmonics(int); //Set number of harmonics for additive synthesis
     void setLPFCutoff(float); //Set the LPF cutoff frequency
-    void setCombFilterVal(int);
-    void setFlangerFrq(float);
-    void setChorusFrq(float);
-    void setVibratoFrq(float);
+    void setCombFilterVal(int); //Set comb filter number of delayed samples
+    void setFlangerFrq(float); //Set flanger frequency
+    void setChorusFrq(float); //Set chorus frequency
+    void setVibratoFrq(float); //Set vibrato freqency
 
     enum class Source
     {
@@ -71,8 +71,8 @@ public:
     enum class Effects
     {
         none,
-        reverb,
         lpf,
+        reverb,
         comb,
         flanger,
         chorus,
@@ -83,7 +83,7 @@ public:
     //signal pipeline variables (needs to be public for GUI component implementation)
     Effects* effects;
     void setEffect(Effects&, int);
-    void ModuleManager(Effects*, juce::AudioBuffer<float>&, int, int, float*, float, float);
+    void ModuleManager(Effects*, juce::AudioBuffer<float>&, int, int, float*, float, float, int, float, float, float);
     
 
 private:
@@ -92,10 +92,10 @@ private:
     void changeBitDepth(float* pfAudio, int numSamples); //called within APC during getNextAudioBlock to change the bit depth at the output
     void applyReverb(juce::AudioBuffer<float>&, int, int);
     void applyMovingAverageFilter(float*, int, float, float);
-    void applyCombFilter();
-    void applyFlanger();
-    void applyChorus();
-    void applyVibrato();
+    void applyCombFilter(float*, int, int, float);
+    void applyFlanger(float*, int, float);
+    void applyChorus(float*, int, float);
+    void applyVibrato(float*, int, float);
 
     //=========================================================================
     float* m_pfSoundArray;
@@ -111,7 +111,6 @@ private:
     float m_fNumHarmonics; //Number of harmonics in additive synthesis
     
     //Effects variables
-    bool m_bReverbOn; //Is the reverb on?
     bool m_bDitherOn; //Is dither enabled?
     float m_fLpfCutoff; //Cutoff frequency of the LPF
     int m_iCombFilterVal; //Comb filter: number of delayed samples

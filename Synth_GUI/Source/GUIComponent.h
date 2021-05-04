@@ -33,7 +33,7 @@ public:
     void samplerateChanged(); //handles changes to the sample rate selection menu
     void bitdepthChanged(); //handles changes to the bit depth selection menu
 
-    enum Note
+    enum class Note
     {
         c = 90,
         cs = 83,
@@ -54,7 +54,7 @@ public:
         eOct = 47
     };
 
-    enum Tranpositions
+    enum class Tranpositions
     {
         downTwoOct = 49,
         downOneOct,
@@ -64,11 +64,27 @@ public:
         numlevels = 5
     };
 
+    enum class EffectGuis
+    {
+        lpfGui = 54,
+        combGui,
+        flangerGui,
+        chorusGui,
+        vibratoGui = 48,
+        numGuis = 5
+    };
+
 private:
     void ToggleSynth();
-    void GetKey(int);
-    void ToggleHelp();
     void Start();
+    void ToggleLpfGui();
+    void ToggleReverbGui();
+    void ToggleCombGui();
+    void ToggleFlangerGui();
+    void ToggleChorusGui();
+    void ToggleVibratoGui();
+    void UntoggleAllGuis();
+
     //========================================================================== 
     
     //Start Button
@@ -89,10 +105,10 @@ private:
 
     //for configuring the number of harmonics
     juce::Slider numHarms; //slider for specifying number of harmonics in additive synthesis
-    juce::Label numHarmsLabel{ {}, "Adjust the number of harmonics" };
+    juce::Label numHarmsLabel{ {}, "Number of Harmonics" };
 
     //for LPF
-    juce::Label lpfCutoffLabel{ {}, "LPF Cutoff Frequency Slider" };
+    juce::Label lpfCutoffLabel{ {}, "LPF Cutoff Frequency" };
     juce::Slider lpfCutoff; //Slider for LPF cutoff frequency
 
     //for comb filter
@@ -115,7 +131,7 @@ private:
     juce::Slider vibratoFrq;
 
     //for help text
-    juce::Label helpText{ {}, "Play the synth with the bottom two rows of letter keys. Use the number keys 1 - 5 at the top to change the octave. Press escape to toggle these instructions on and off." };
+    juce::Label helpText{ {}, "Play the synth with the bottom two rows of letter keys. Use the number keys 1 - 5 at the top to change the octave. Use the number keys 6-9 and 0 to toggle GUIs for the Effects. (6: LPF, 7: Comb, 8: Flanger, 9: Chorus, 0: Vibrato"};
     bool m_bHelpTextOn; //Is the help text visible?
 
     //for signal pipeline
@@ -123,9 +139,21 @@ private:
     juce::Label firstEffectLabel{ {}, "First Effect" };
     juce::ComboBox secondEffect;
     juce::Label secondEffectLabel{ {}, "Second Effect" };
-    
+    juce::ComboBox thirdEffect;
+    juce::Label thirdEffectLabel{ {}, "Third Effect" };
+    juce::ComboBox fourthEffect;
+    juce::Label fourthEffectLabel{ {}, "Fourth Effect" };
+    juce::ComboBox fifthEffect;
+    juce::Label fifthEffectLabel{ {}, "Fifth Effect" };
+    juce::ComboBox sixthEffect;
+    juce::Label sixthEffectLabel{ {}, "Sixth Effect" };
+   
     AudioProcessingComponent& apc; //Audio Processing Component
     juce::KeyPress key; // UI Keyboard presses
+
+    //UI Component locations
+    int m_iX;
+    int m_iY;
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(GUIComponent)
 };
