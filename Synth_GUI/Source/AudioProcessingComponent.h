@@ -128,8 +128,6 @@ private:
     juce::ADSR env; //envelope to apply to sound gen
     juce::IIRFilter antiAlias; //anti aliasing filter for downsampling
     juce::Random random; //noise source for dither
-    juce::AudioDeviceManager manager;
-    juce::AudioDeviceManager::AudioDeviceSetup audioSetup;
 
     // Modules
     FilterComponent* filt;

@@ -99,6 +99,7 @@ GUIComponent::GUIComponent(AudioProcessingComponent& c) :
     lpfCutoff.setSliderStyle(juce::Slider::Rotary);
     lpfCutoff.setRange(22, 10000);
     lpfCutoff.setValue(3000);
+    lpfCutoff.setNumDecimalPlacesToDisplay(2);
     lpfCutoff.onValueChange = [this] { apc.setLPFCutoff(lpfCutoff.getValue()); };
 
 
@@ -190,21 +191,21 @@ void GUIComponent::resized() //GUI positions on screen
     sourceMenu.setBounds(10, 100, 100, 20);
 
     // low pass filter
-    lpfCutoff.setBounds(0, 150, 150, 150);
-    lpfCutoffLabel.setBounds(150, 155, getWidth() - 20, 20);
+    lpfCutoff.setBounds(10, 150, 150, 150);
+    lpfCutoffLabel.setBounds(10, 155, getWidth() - 20, 20);
 
     //comb filter
 
     //reverb
 
     //Effect combo box
-    firstEffect.setBounds(400, 200, 100, 20);
-    firstEffectLabel.setBounds(400, 230, 100, 20);
-    secondEffect.setBounds(400, 300, 100, 20);
-    secondEffectLabel.setBounds(400, 330, 100, 20);
+    firstEffect.setBounds(getWidth()-300, 200, 100, 20);
+    firstEffectLabel.setBounds(getWidth() - 300, 230, 100, 20);
+    secondEffect.setBounds(getWidth() - 300, 300, 100, 20);
+    secondEffectLabel.setBounds(getWidth() - 300, 330, 100, 20);
 
     // HelpText
-    helpText.setBounds(10, 400, 400, 200);
+    helpText.setBounds(10, getHeight()-200, 400, 200);
 }
 
 bool GUIComponent::keyPressed(const juce::KeyPress& key, juce::Component* originatingComponent)

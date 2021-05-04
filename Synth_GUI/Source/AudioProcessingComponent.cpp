@@ -41,12 +41,12 @@ AudioProcessingComponent::AudioProcessingComponent() :
     filt(0),
     KS(0),
     revrb(0),
-    Add(0)
+    Add(0),
+    mod(0)
 {
     // In your constructor, you should add any child components, and
     // initialise any special settings that your component needs.
 
-    //manager.initialise(0, m_iNumChannels, nullptr, true);
     setAudioChannels(0, m_iNumChannels); // no inputs, two outputs
 }
 
@@ -69,6 +69,9 @@ AudioProcessingComponent::~AudioProcessingComponent()
   
     revrb->~ReverbComponent();
     revrb = 0;
+
+    mod->~ModEffectsComponent();
+    mod = 0;
 
     env.reset();
     antiAlias.reset();
@@ -293,20 +296,9 @@ void AudioProcessingComponent::changeSampleRate(float* pfAudio, int numSamples)
         antiAlias.setCoefficients(juce::IIRCoefficients::makeLowPass(m_fSampleRate, m_fOutputSampRate * 0.5));
         antiAlias.processSamples(pfAudio, numSamples);
         
-        //update the sample rate in the device manager
-        //audioSetup.sampleRate = m_fOutputSampRate;
-        //audioSetup.bufferSize = m_fOutputSampRate * 0.01;
-        //manager.setAudioDeviceSetup(audioSetup, false);
-
-
         float samplesPerHold = m_fSampleRate / m_fOutputSampRate;
 
         // cubic interpolation on an arbitrary interval
-
-
-        audioSetup.sampleRate = m_fOutputSampRate;
-        audioSetup.bufferSize = 480;
-        manager.setAudioDeviceSetup(audioSetup, false);
 
 
         if (m_fOutputSampRate == 16000.0) //then check for the integer factor case (16k)
