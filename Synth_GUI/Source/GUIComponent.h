@@ -32,7 +32,7 @@ public:
 
     void samplerateChanged(); //handles changes to the sample rate selection menu
 
-    enum Note
+    enum class Note
     {
         c = 90,
         cs = 83,
@@ -117,6 +117,15 @@ private:
     juce::Label firstEffectLabel{ {}, "First Effect" };
     juce::ComboBox secondEffect;
     juce::Label secondEffectLabel{ {}, "Second Effect" };
+    juce::ComboBox thirdEffect;
+    juce::Label thirdEffectLabel{ {}, "Third Effect" };
+    juce::ComboBox fourthEffect;
+    juce::Label fourthEffectLabel{ {}, "Fourth Effect" };
+    juce::ComboBox fifthEffect;
+    juce::Label fifthEffectLabel{ {}, "Fifth Effect" };
+    juce::ComboBox sixthEffect;
+    juce::Label sixthEffectLabel{ {}, "Sixth Effect" };
+
     
     AudioProcessingComponent& apc; //Audio Processing Component
     juce::KeyPress key; // UI Keyboard presses

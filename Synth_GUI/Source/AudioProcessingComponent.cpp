@@ -26,7 +26,6 @@ AudioProcessingComponent::AudioProcessingComponent() :
     m_bPlaying(false),
     m_fNumHarmonics(200),
 
-    m_bReverbOn(false),
     m_fLpfCutoff(3000),
     m_iCombFilterVal(500),
     m_fFlangerFrq(500),
@@ -41,7 +40,8 @@ AudioProcessingComponent::AudioProcessingComponent() :
     filt(0),
     KS(0),
     revrb(0),
-    Add(0)
+    Add(0),
+    mod(0)
 {
     // In your constructor, you should add any child components, and
     // initialise any special settings that your component needs.
@@ -68,6 +68,8 @@ AudioProcessingComponent::~AudioProcessingComponent()
     revrb->~ReverbComponent();
     revrb = 0;
 
+    mod->~ModEffectsComponent();
+
     env.reset();
     antiAlias.reset();
 }
@@ -82,15 +84,15 @@ void AudioProcessingComponent::prepareToPlay(int samplesPerBlockExpected, double
 
     filt = new FilterComponent(m_fSampleRate); //create filter module
     revrb = new ReverbComponent(m_fSampleRate, samplesPerBlockExpected); //create reverb module
+    KS = new KarplusStrong(m_fSampleRate); //create karplus strong module
+    Add = new Additive(); //creates additive synthesis module
+    mod = new ModEffectsComponent(); //creates modular effects module
 
-    // Code for Karplus Strong Algorithm 
-    KS = new KarplusStrong(m_fSampleRate); //create KS generator
+    //Karplus strong
     KS->CreateOutput(); //Create KS random samples
     m_pfSoundArray = new float[m_fSampleRate]; //KS buffer
     KS->GetKarpArray(m_pfSoundArray); // Put random samples into buffer
 
-    Add = new Additive();
-  
     //Envelope
     env.setSampleRate(sampleRate);
     juce::ADSR::Parameters params;
@@ -114,29 +116,33 @@ void AudioProcessingComponent::getNextAudioBlock(const juce::AudioSourceChannelI
 
     for (auto sample = 0; sample < bufferToFill.numSamples; ++sample)
     {
-       
-        if (m_kSource == Source::square)
+        switch (m_kSource)
         {
-            Add->GetSquareSamp(m_dWaveSamp, m_fSampleRate, 1, m_dFreq, m_fNumHarmonics); 
+        case Source::square:
+            Add->GetSquareSamp(m_dWaveSamp, m_fSampleRate, 1, m_dFreq, m_fNumHarmonics);
             p[sample] = m_dWaveSamp;
-        }
+            break;
 
-        else if (m_kSource == Source::sine)
-        {
+        case Source::sine:
             Add->GetSquareSamp(m_dWaveSamp, m_fSampleRate, 1, m_dFreq, 1);
             p[sample] = m_dWaveSamp;
-        }
+            break;
 
-        else if (m_kSource == Source::karplus)
-        {
+        case Source::karplus:
             p[sample] = m_pfSoundArray[KS->GetKarpWriteIdx()];
-        }
+            break;
 
-        else if (m_kSource == Source::triangle)
-        {
-            Add->GetTriSamp(m_dWaveSamp, m_fSampleRate, 1, m_dFreq, m_fNumHarmonics); 
+        case Source::triangle:
+            Add->GetTriSamp(m_dWaveSamp, m_fSampleRate, 1, m_dFreq, m_fNumHarmonics);
             p[sample] = m_dWaveSamp;
+            break;
+
+        default:
+            Add->GetSquareSamp(m_dWaveSamp, m_fSampleRate, 1, m_dFreq, 1);
+            p[sample] = m_dWaveSamp;
+            break;
         }
+     
 
         //apply ADSR accordingly
         if (m_bPlaying)
@@ -154,7 +160,8 @@ void AudioProcessingComponent::getNextAudioBlock(const juce::AudioSourceChannelI
 
     // CUTOFF RANGE IS 22 Hz - 20 kHz, GAIN RANGE IS 0.0 - 1.0
 
-    ModuleManager(effects, audioBuffer, 0, bufferToFill.numSamples, p, m_fLpfCutoff, 0.9);
+    ModuleManager(effects, audioBuffer, 0, bufferToFill.numSamples, p, m_fLpfCutoff, 0.9, 
+                    m_iCombFilterVal, m_fChorusFrq, m_fFlangerFrq, m_fVibratoFrq);
     
     //applyMovingAverageFilter(p, bufferToFill.numSamples, m_fLpfCutoff, 0.9); //LP filter
 
@@ -196,18 +203,6 @@ void AudioProcessingComponent::setTranspositionVal(double val)
 void AudioProcessingComponent::setPlaying(bool isPlaying)
 {
     m_bPlaying = isPlaying;
-}
-
-void AudioProcessingComponent::toggleReverb()
-{
-    if (m_bReverbOn)
-    {
-        m_bReverbOn = false;
-    }
-    else
-    {
-        m_bReverbOn = true;
-    }
 }
 
 void AudioProcessingComponent::setSampleRate(float newSampRate)
@@ -300,29 +295,29 @@ void AudioProcessingComponent::applyReverb(juce::AudioBuffer<float>& outputAudio
     revrb->renderNextSubBlock(outputAudio, startSample, numSamples);
 }
 
-void AudioProcessingComponent::applyMovingAverageFilter(float* ppfInputBuffer, int iBuffSize, float fcutoff, float fGain)
+void AudioProcessingComponent::applyMovingAverageFilter(float* ppfBuffer, int iBuffSize, float fcutoff, float fGain)
 {
-    filt->processMovingAvgFilt(ppfInputBuffer, ppfInputBuffer, iBuffSize, m_fLpfCutoff, 0.9); //LP Filter
+    filt->processMovingAvgFilt(ppfBuffer, ppfBuffer, iBuffSize, m_fLpfCutoff, 0.9); //LP Filter
 }
 
-void AudioProcessingComponent::applyCombFilter()
+void AudioProcessingComponent::applyCombFilter(float* ppfBuffer, int iBuffSize, int delayInSamps, float fGain)
 {
-
+    //filt->processCombFilter(ppfBuffer, ppfBuffer, iBuffSize, delayInSamps, fGain);
 }
 
-void AudioProcessingComponent::applyFlanger()
+void AudioProcessingComponent::applyFlanger(float* ppfBuffer, int iBuffSize, float flangeFrq)
 {
-
+    //mod->processFlanger(ppfBuffer, ppfBuffer, iBuffSize, flangeFrq);
 }
 
-void AudioProcessingComponent::applyChorus()
+void AudioProcessingComponent::applyChorus(float* ppfBuffer, int iBuffSize, float chorusFrq)
 {
-
+    //mod->processFlanger(ppfBuffer, ppfBuffer, iBuffSize, chorusFrq);
 }
 
-void AudioProcessingComponent::applyVibrato()
+void AudioProcessingComponent::applyVibrato(float* ppfBuffer, int iBuffSize, float vibratoFrq)
 {
-
+    //mod-processVibrato(ppfBuffer, ppfBuffer, iBuffSize, vibratoFrq);
 }
 
 void AudioProcessingComponent::setEffect(AudioProcessingComponent::Effects& effect, int val)
@@ -358,7 +353,8 @@ void AudioProcessingComponent::setEffect(AudioProcessingComponent::Effects& effe
 }
 
 void AudioProcessingComponent::ModuleManager(Effects* effects, juce::AudioBuffer<float>& outputAudio, int startSample, 
-                                                int numSamples, float* ppfInputBuffer, float fcutoff, float fGain)
+                                                int numSamples, float* ppfBuffer, float fcutoff, float fGain, 
+                                                int delayInSamps, float chorusFrq, float flangerFrq, float vibratoFrq) 
 {
     for (int i = 0; i < 6; i++)
     {
@@ -370,19 +366,19 @@ void AudioProcessingComponent::ModuleManager(Effects* effects, juce::AudioBuffer
             applyReverb(outputAudio, startSample, numSamples);
             break;
         case Effects::lpf:
-            applyMovingAverageFilter(ppfInputBuffer, numSamples, fcutoff, fGain);
+            applyMovingAverageFilter(ppfBuffer, numSamples, fcutoff, fGain);
             break;
         case Effects::comb:
-            applyCombFilter();
+            applyCombFilter(ppfBuffer, numSamples, delayInSamps, fGain);
             break;
         case Effects::flanger:
-            applyFlanger();
+            applyFlanger(ppfBuffer, numSamples, flangerFrq);
             break;
         case Effects::chorus:
-            applyChorus();
+            applyChorus(ppfBuffer, numSamples, chorusFrq);
             break;
         case Effects::vibrato:
-            applyVibrato();
+            applyVibrato(ppfBuffer, numSamples, vibratoFrq);
             break;
         default:
             break;

@@ -31,7 +31,14 @@ void GUIComponent::Start()
     addAndMakeVisible(firstEffect);
     addAndMakeVisible(secondEffectLabel);
     addAndMakeVisible(secondEffect);
-    addAndMakeVisible(helpText);
+    addAndMakeVisible(thirdEffect);
+    addAndMakeVisible(thirdEffectLabel);
+    addAndMakeVisible(fourthEffect);
+    addAndMakeVisible(fourthEffectLabel);
+    addAndMakeVisible(fifthEffect);
+    addAndMakeVisible(fifthEffectLabel);
+    addAndMakeVisible(sixthEffect);
+    addAndMakeVisible(sixthEffectLabel);
 
     startButton.setVisible(false);
 }
@@ -120,6 +127,10 @@ GUIComponent::GUIComponent(AudioProcessingComponent& c) :
     firstEffect.addItem("None", 1);
     firstEffect.addItem("LPF", 2);
     firstEffect.addItem("Reverb", 3);
+    firstEffect.addItem("Comb Filter", 4);
+    firstEffect.addItem("Flanger", 5);
+    firstEffect.addItem("Chorus", 6);
+    firstEffect.addItem("Vibrato", 7);
     firstEffect.setSelectedId(0); //default none
     firstEffect.onChange = [this] { apc.setEffect(apc.effects[0], firstEffect.getSelectedId()); };
 
@@ -128,8 +139,60 @@ GUIComponent::GUIComponent(AudioProcessingComponent& c) :
     secondEffect.addItem("None", 1);
     secondEffect.addItem("LPF", 2);
     secondEffect.addItem("Reverb", 3);
+    secondEffect.addItem("Comb Filter", 4);
+    secondEffect.addItem("Flanger", 5);
+    secondEffect.addItem("Chorus", 6);
+    secondEffect.addItem("Vibrato", 7);
     secondEffect.setSelectedId(0); //default none
     secondEffect.onChange = [this] { apc.setEffect(apc.effects[1], secondEffect.getSelectedId()); };
+
+    //third effect
+    thirdEffectLabel.setFont(juce::Font{ 16.0 });
+    thirdEffect.addItem("None", 1);
+    thirdEffect.addItem("LPF", 2);
+    thirdEffect.addItem("Reverb", 3);
+    thirdEffect.addItem("Comb Filter", 4);
+    thirdEffect.addItem("Flanger", 5);
+    thirdEffect.addItem("Chorus", 6);
+    thirdEffect.addItem("Vibrato", 7);
+    thirdEffect.setSelectedId(0); //default none
+    thirdEffect.onChange = [this] { apc.setEffect(apc.effects[2], thirdEffect.getSelectedId()); };
+
+    //fourth effect
+    fourthEffectLabel.setFont(juce::Font{ 16.0 });
+    fourthEffect.addItem("None", 1);
+    fourthEffect.addItem("LPF", 2);
+    fourthEffect.addItem("Reverb", 3);
+    fourthEffect.addItem("Comb Filter", 4);
+    fourthEffect.addItem("Flanger", 5);
+    fourthEffect.addItem("Chorus", 6);
+    fourthEffect.addItem("Vibrato", 7);
+    fourthEffect.setSelectedId(0); //default none
+    fourthEffect.onChange = [this] { apc.setEffect(apc.effects[3], fourthEffect.getSelectedId()); };
+
+    //fifth effect
+    fifthEffectLabel.setFont(juce::Font{ 16.0 });
+    fifthEffect.addItem("None", 1);
+    fifthEffect.addItem("LPF", 2);
+    fifthEffect.addItem("Reverb", 3);
+    fifthEffect.addItem("Comb Filter", 4);
+    fifthEffect.addItem("Flanger", 5);
+    fifthEffect.addItem("Chorus", 6);
+    fifthEffect.addItem("Vibrato", 7);
+    fifthEffect.setSelectedId(0); //default none
+    fifthEffect.onChange = [this] { apc.setEffect(apc.effects[4], fifthEffect.getSelectedId()); };
+
+    //sixth effect
+    sixthEffectLabel.setFont(juce::Font{ 16.0 });
+    sixthEffect.addItem("None", 1);
+    sixthEffect.addItem("LPF", 2);
+    sixthEffect.addItem("Reverb", 3);
+    sixthEffect.addItem("Comb Filter", 4);
+    sixthEffect.addItem("Flanger", 5);
+    sixthEffect.addItem("Chorus", 6);
+    sixthEffect.addItem("Vibrato", 7);
+    sixthEffect.setSelectedId(0); //default none
+    sixthEffect.onChange = [this] { apc.setEffect(apc.effects[5], sixthEffect.getSelectedId()); };
 }
 
 GUIComponent::~GUIComponent()
@@ -175,11 +238,19 @@ void GUIComponent::resized() //GUI positions on screen
 
     //reverb
 
-    //Effect combo box
-    firstEffect.setBounds(400, 200, 100, 20);
-    firstEffectLabel.setBounds(400, 230, 100, 20);
-    secondEffect.setBounds(400, 300, 100, 20);
-    secondEffectLabel.setBounds(400, 330, 100, 20);
+    //Effect combo boxes and labels
+    firstEffect.setBounds(550, 50, 100, 20);
+    firstEffectLabel.setBounds(550, 80, 100, 20);
+    secondEffect.setBounds(550, 150, 100, 20);
+    secondEffectLabel.setBounds(550, 180, 100, 20);
+    thirdEffect.setBounds(550, 250, 100, 20);
+    thirdEffectLabel.setBounds(550, 280, 100, 20);
+    fourthEffect.setBounds(550, 350, 100, 20);
+    fourthEffectLabel.setBounds(550, 380, 100, 20);
+    fifthEffect.setBounds(550, 450, 100, 20);
+    fifthEffectLabel.setBounds(550, 480, 100, 20);
+    sixthEffect.setBounds(550, 550, 100, 20);
+    sixthEffectLabel.setBounds(550, 580, 100, 20);
 
     // HelpText
     helpText.setBounds(10, 400, 400, 200);
