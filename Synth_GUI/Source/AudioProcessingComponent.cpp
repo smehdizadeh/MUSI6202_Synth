@@ -25,25 +25,19 @@ AudioProcessingComponent::AudioProcessingComponent() :
     m_dWaveSamp(0),
     m_iNumKeysDown(0),
     m_kSource(Source::square),
-    m_dFreq(0),
     m_dTransposeVal(0),
     m_bPlaying(false),
     m_fNumHarmonics(200),
 
     m_bReverbOn(false),
     m_bDitherOn(false),
-    m_dTransposeVal(0),
     m_fLpfCutoff(3000),
     m_iCombFilterVal(500),
     m_fFlangerFrq(500),
     m_fChorusFrq(500),
     m_fVibratoFrq(500),
 
-    m_fSampleRate(0),
-    m_fOutputSampRate(0),
-
     effects(0),
-
     filt(0),
     KS(0),
     revrb(0),

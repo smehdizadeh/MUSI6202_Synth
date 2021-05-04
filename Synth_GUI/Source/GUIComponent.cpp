@@ -139,7 +139,7 @@ GUIComponent::GUIComponent(AudioProcessingComponent& c) :
     firstEffect.addItem("None", 1);
     firstEffect.addItem("LPF", 2);
     firstEffect.addItem("Reverb", 3);
-    firstEffect.setSelectedId(0); //default none
+    firstEffect.setSelectedId(1); //default none
     firstEffect.onChange = [this] { apc.setEffect(apc.effects[0], firstEffect.getSelectedId()); };
 
     //second effect
@@ -147,7 +147,7 @@ GUIComponent::GUIComponent(AudioProcessingComponent& c) :
     secondEffect.addItem("None", 1);
     secondEffect.addItem("LPF", 2);
     secondEffect.addItem("Reverb", 3);
-    secondEffect.setSelectedId(0); //default none
+    secondEffect.setSelectedId(1); //default none
     secondEffect.onChange = [this] { apc.setEffect(apc.effects[1], secondEffect.getSelectedId()); };
 }
 

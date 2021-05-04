@@ -122,8 +122,6 @@ private:
     float m_fOutputSampRate; //output sample rate
     float m_fOutputBitDepth; //output bit depth
 
-    int m_iNumChannels;
-
     juce::AudioBuffer<float> audioBuffer; //for temporary storage and processings
     juce::ADSR env; //envelope to apply to sound gen
     juce::IIRFilter antiAlias; //anti aliasing filter for downsampling
