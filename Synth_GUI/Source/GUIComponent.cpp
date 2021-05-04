@@ -257,10 +257,10 @@ void GUIComponent::resized() //GUI positions on screen
 
     // sample rate and bit depth
     chooseSampRate.setBounds(10, 10, getWidth() - 20, 20);
-    chooseBitDepth.setBounds(getWidth() - 300, 10, getWidth() - 20, 20);
+    chooseBitDepth.setBounds(280, 10, getWidth() - 20, 20);
     samplerateMenu.setBounds(10, 40, 100, 20);
-    bitdepthMenu.setBounds(getWidth() - 300, 40, 100, 20);
-    ditherButton.setBounds(getWidth() - 175, 40, 100, 20);
+    bitdepthMenu.setBounds(280, 40, 100, 20);
+    ditherButton.setBounds(400, 40, 100, 20);
 
     // source
     chooseSource.setBounds(10, 100, getWidth() - 20, 20);
