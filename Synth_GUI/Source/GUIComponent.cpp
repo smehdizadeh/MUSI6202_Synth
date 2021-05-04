@@ -10,50 +10,61 @@
 #include "GUIComponent.h"
 #include <cmath>
 
+void GUIComponent::Start()
+{
+    addAndMakeVisible(chooseSampRate);
+    addAndMakeVisible(samplerateMenu);
+    addAndMakeVisible(chooseBitDepth);
+    addAndMakeVisible(bitdepthMenu);
+    addAndMakeVisible(ditherButton);
+    addAndMakeVisible(sourceMenu);
+    addAndMakeVisible(numHarmsLabel);
+    addAndMakeVisible(numHarms);
+    addAndMakeVisible(lpfCutoffLabel);
+    addAndMakeVisible(lpfCutoff);
+    addAndMakeVisible(combFilterLabel);
+    addAndMakeVisible(combFilter);
+    addAndMakeVisible(flangerFrqLabel);
+    addAndMakeVisible(flangerFrq);
+    addAndMakeVisible(chorusFrqLabel);
+    addAndMakeVisible(chorusFrq);
+    addAndMakeVisible(vibratoFrqLabel);
+    addAndMakeVisible(vibratoFrq);
+    addAndMakeVisible(firstEffectLabel);
+    addAndMakeVisible(firstEffect);
+    addAndMakeVisible(secondEffectLabel);
+    addAndMakeVisible(secondEffect);
+    addAndMakeVisible(helpText);
+
+    startButton.setVisible(false);
+}
 
 //==============================================================================
-GUIComponent::GUIComponent(AudioProcessingComponent& c) : 
+GUIComponent::GUIComponent(AudioProcessingComponent& c) :
     apc(c), //this is how we get the GUI to communicate with the APC
     m_bTabReleased(false),
-    m_bTabPressed(false),
-    m_bNotePlayed(false),
-    m_bInitialized(false)
-{
-    // LPF cutoff slider
-    addAndMakeVisible(lpfCutoff);
-    lpfCutoff.setRange(22, 10000);
-    lpfCutoff.setValue(3000);
-    lpfCutoff.onValueChange = [this]
-    {
-        apc.SetLPFCutoff(lpfCutoff.getValue());
-    };
-
-    // Change the source of the sound
-    addAndMakeVisible(sourceBtn);
-    sourceBtn.setButtonText("Click Here to Start!");
-    sourceBtn.onClick = [this] { sourceBtnClicked(); };
-    
+    m_bHelpTextOn(false)
+{   
+    //Start Button
+    addAndMakeVisible(startButton);
+    startButton.setButtonText("Click Here to Start the Synthesizer!");
+    startButton.onClick = [this] { Start(); };
 
     //Keyboard Listeners
     setWantsKeyboardFocus(true);
     addKeyListener(this);
 
     //for configuring sample rate
-    addAndMakeVisible(chooseSampRate);
     chooseSampRate.setFont(juce::Font{ 16.0f });
-    addAndMakeVisible(samplerateMenu);
     samplerateMenu.addItem("48 kHz", 1);
     samplerateMenu.addItem("44.1 kHz", 2);
     samplerateMenu.addItem("22.05 kHz", 3);
     samplerateMenu.addItem("16 kHz", 4);
-
     samplerateMenu.onChange = [this] {samplerateChanged(); };
     samplerateMenu.setSelectedId(1); //default 48k
 
     //for configuring bit depth
-    addAndMakeVisible(chooseBitDepth);
     chooseBitDepth.setFont(juce::Font{ 16.0f });
-    addAndMakeVisible(bitdepthMenu);
     bitdepthMenu.addItem("32 bit", 1);
     bitdepthMenu.addItem("24 bit", 2);
     bitdepthMenu.addItem("20 bit", 3);
@@ -64,33 +75,80 @@ GUIComponent::GUIComponent(AudioProcessingComponent& c) :
     bitdepthMenu.setSelectedId(1); //default 32 bit
 
     //dither
-    addAndMakeVisible(ditherButton);
     ditherButton.setButtonText("Dither");
     ditherButton.setState(juce::Button::ButtonState::buttonNormal);
     ditherButton.onClick = [this] {apc.setDither(ditherButton.getToggleState()); };
 
-    //Slider Labels and directions
-    addAndMakeVisible(lpfCutoffLabel);
+    //for configuring source
+    sourceMenu.addItem("Karplus", 1);
+    sourceMenu.addItem("Sine", 2);
+    sourceMenu.addItem("Square", 3);
+    sourceMenu.addItem("Triangle", 4);
+    sourceMenu.onChange = [this] {sourceChanged(); };
+    sourceMenu.setSelectedId(1); //default karplus Strong
+
+    //for configuring the number of harmonics
+    numHarmsLabel.setFont(juce::Font{ 16.0f });
+    numHarms.setSliderStyle(juce::Slider::Rotary);
+    numHarms.setRange(1, 200);
+    numHarms.setValue(20);
+    numHarms.onValueChange = [this] {};
+    
+    //for configuring LPF
     lpfCutoffLabel.setFont(juce::Font{ 16.0f });
-    addAndMakeVisible(playDirections);
-    playDirections.setFont(juce::Font{ 16.0f });
-    playDirections.setVisible(false);
-    addAndMakeVisible(reverbDirections);
-    reverbDirections.setFont(juce::Font{ 16.0f });
-    reverbDirections.setVisible(false);
+    lpfCutoff.setSliderStyle(juce::Slider::Rotary);
+    lpfCutoff.setRange(22, 10000);
+    lpfCutoff.setValue(3000);
+    lpfCutoff.onValueChange = [this] { apc.setLPFCutoff(lpfCutoff.getValue()); };
 
 
-    // ==== Still being implemented ==== //
+    // ===== Range and init value should be changed to something more accurate for comb filter, flanger, chorus, and vibrato ===== //
+    //for configuring comb filter
+    combFilterLabel.setFont(juce::Font{ 16.0f });
+    combFilter.setSliderStyle(juce::Slider::Rotary);
+    combFilter.setRange(100, 1000); //Range and init value can and should be changed to something more accurate
+    combFilter.setValue(500);
+    combFilter.onValueChange = [this] { apc.setCombFilterVal((int)combFilter.getValue()); };
 
-    /*addAndMakeVisible(selNumHarms);
-    selNumHarms.setEditable(true);
-    selNumHarms.onTextChange = [this]
-    {
-        if (typeid(selNumHarms.getText()).name() == typeid(int).name())
-        {
-            apc.SetNumHarmonics(selNumHarms.getText());
-        }
-    };*/
+    //for configuring flanger
+    flangerFrqLabel.setFont(juce::Font{ 16.0f });
+    flangerFrq.setSliderStyle(juce::Slider::Rotary);
+    flangerFrq.setRange(100, 1000);
+    chorusFrq.setValue(500);
+    flangerFrq.onValueChange = [this] { apc.setFlangerFrq(flangerFrq.getValue()); };
+
+    //for configuring chorus
+    chorusFrqLabel.setFont(juce::Font{ 16.0f });
+    chorusFrq.setSliderStyle(juce::Slider::Rotary);
+    chorusFrq.setRange(100, 1000);
+    chorusFrq.setValue(500);
+    chorusFrq.onValueChange = [this] { apc.setChorusFrq(chorusFrq.getValue()); };
+
+    //for configuring vibrato
+    vibratoFrqLabel.setFont(juce::Font{ 16.0f });
+    vibratoFrq.setRange(100, 1000);
+    vibratoFrq.setValue(500);
+    vibratoFrq.onValueChange = [this] { apc.setVibratoFrq(vibratoFrq.getValue()); };
+
+    //for configuring help text
+    helpText.setFont(juce::Font{ 16.0f });
+
+    //for configuring signal pipeline
+    //first effect
+    firstEffectLabel.setFont(juce::Font{ 16.0 });
+    firstEffect.addItem("None", 1);
+    firstEffect.addItem("LPF", 2);
+    firstEffect.addItem("Reverb", 3);
+    firstEffect.setSelectedId(0); //default none
+    firstEffect.onChange = [this] { apc.setEffect(apc.effects[0], firstEffect.getSelectedId()); };
+
+    //second effect
+    secondEffectLabel.setFont(juce::Font{ 16.0 });
+    secondEffect.addItem("None", 1);
+    secondEffect.addItem("LPF", 2);
+    secondEffect.addItem("Reverb", 3);
+    secondEffect.setSelectedId(0); //default none
+    secondEffect.onChange = [this] { apc.setEffect(apc.effects[1], secondEffect.getSelectedId()); };
 }
 
 GUIComponent::~GUIComponent()
@@ -115,45 +173,49 @@ void GUIComponent::paint(juce::Graphics& g)
     g.setFont(14.0f);
 }
 
-void GUIComponent::resized()
+void GUIComponent::resized() //GUI positions on screen
 {
-    // This method is where you should set the bounds of any child
-    // components that your component contains..
+    //start button
+    startButton.setBounds(200, 200, 300, 100);
+
+    // sample rate and bit depth
     chooseSampRate.setBounds(10, 10, getWidth() - 20, 20);
     chooseBitDepth.setBounds(getWidth() - 300, 10, getWidth() - 20, 20);
     samplerateMenu.setBounds(10, 40, 100, 20);
     bitdepthMenu.setBounds(getWidth() - 300, 40, 100, 20);
     ditherButton.setBounds(getWidth() - 175, 40, 100, 20);
 
-    sourceBtn.setBounds(30, 70, getWidth() - 60, 20);
-    lpfCutoff.setBounds(10, 100, getWidth() - 20, 20);
-    lpfCutoffLabel.setBounds(getWidth()*0.4, 125, getWidth() - 20, 20);
-    playDirections.setBounds(10, 400, getWidth() - 20, 20);
-    reverbDirections.setBounds(10, 200, getWidth() - 20, 20);
+    // source
+    chooseSource.setBounds(10, 70, getWidth() - 20, 20);
+    sourceMenu.setBounds(10, 100, 100, 20);
+
+    // low pass filter
+    lpfCutoff.setBounds(0, 150, 150, 150);
+    lpfCutoffLabel.setBounds(150, 155, getWidth() - 20, 20);
+
+    //comb filter
+
+    //reverb
+
+    //Effect combo box
+    firstEffect.setBounds(400, 200, 100, 20);
+    firstEffectLabel.setBounds(400, 230, 100, 20);
+    secondEffect.setBounds(400, 300, 100, 20);
+    secondEffectLabel.setBounds(400, 330, 100, 20);
+
+    // HelpText
+    helpText.setBounds(10, 400, 400, 200);
 }
 
 bool GUIComponent::keyPressed(const juce::KeyPress& key, juce::Component* originatingComponent)
 {
-    if (key == juce::KeyPress::tabKey)
+    if (key == juce::KeyPress::escapeKey)
     {
-        if (!m_bTabPressed)
-        {
-            //reverbDirections.setVisible(false);
-            m_bTabPressed = true;
-        }
-        if (m_bTabReleased)
-        {
-            m_bTabReleased = false;
-            apc.ToggleReverb();
-            return true;
-        }
+        ToggleHelp();
     }
+
     else
     {
-        if (m_bInitialized)
-        {
-            //playDirections.setVisible(false);
-        }
         GetKey(key.getKeyCode());
         return true;
     }
@@ -173,7 +235,6 @@ void GUIComponent::ToggleSynth()
     if (!key.isKeyCurrentlyDown((juce::KeyPress::tabKey)))
     {
         m_bTabReleased = true;
-        DBOUT(m_bTabReleased);
     }
 
     if (key.isKeyCurrentlyDown((int)Note::c))
@@ -246,7 +307,7 @@ void GUIComponent::ToggleSynth()
     }
     else
     {
-        apc.SetPlaying(false);
+        apc.setPlaying(false);
     }
 }
 
@@ -255,103 +316,94 @@ void GUIComponent::GetKey(int press)
     switch (press)
     {
     case (int)Tranpositions::downTwoOct:
-        apc.SetTranspositionVal(-24);
+        apc.setTranspositionVal(-24);
         break;
     case (int)Tranpositions::downOneOct:
-        apc.SetTranspositionVal(-12);
+        apc.setTranspositionVal(-12);
         break;
     case (int)Tranpositions::level:
-        apc.SetTranspositionVal(0);
+        apc.setTranspositionVal(0);
         break;
     case (int)Tranpositions::upOneOct:
-        apc.SetTranspositionVal(12);
+        apc.setTranspositionVal(12);
         break;
     case (int)Tranpositions::upTwoOct:
-        apc.SetTranspositionVal(24);
+        apc.setTranspositionVal(24);
         break;
     case (int)Note::c:
-        apc.SetFrq(48);
+        apc.setFrq(48);
         break;
     case (int)Note::cs:
-        apc.SetFrq(49);
+        apc.setFrq(49);
         break;
     case (int)Note::d:
-        apc.SetFrq(50);
+        apc.setFrq(50);
         break;
     case (int)Note::ds:
-        apc.SetFrq(51);
+        apc.setFrq(51);
         break;
     case (int)Note::e:
-        apc.SetFrq(52);
+        apc.setFrq(52);
         break;
     case (int)Note::f:
-        apc.SetFrq(53);
+        apc.setFrq(53);
         break;
     case (int)Note::fs:
-        apc.SetFrq(54);
+        apc.setFrq(54);
         break;
     case (int)Note::g:
-        apc.SetFrq(55);
+        apc.setFrq(55);
         break;
     case (int)Note::gs:
-        apc.SetFrq(56);
+        apc.setFrq(56);
         break;
     case (int)Note::a:
-        apc.SetFrq(57);
+        apc.setFrq(57);
         break;
     case (int)Note::as:
-        apc.SetFrq(58);
+        apc.setFrq(58);
         break;
     case (int)Note::b:
-        apc.SetFrq(59);
+        apc.setFrq(59);
         break;
     case (int)Note::cOct:
-        apc.SetFrq(60);
+        apc.setFrq(60);
         break;
     case (int)Note::csOct:
-        apc.SetFrq(61);
+        apc.setFrq(61);
         break;
     case (int)Note::dOct:
-        apc.SetFrq(62);
+        apc.setFrq(62);
         break;
     case (int)Note::dsOct:
-        apc.SetFrq(63);
+        apc.setFrq(63);
         break;
     case (int)Note::eOct:
-        apc.SetFrq(64);
+        apc.setFrq(64);
         break;
     default:
         break;
     }
 }
 
-void GUIComponent::sourceBtnClicked()
+void GUIComponent::sourceChanged()
 {
-    if (!m_bInitialized)
-    {
-        playDirections.setVisible(true);
-        reverbDirections.setVisible(true);
-        m_bInitialized = true;
-    }
 
-    if ((sourceBtn.getButtonText() == "Square Wave") || (sourceBtn.getButtonText() == "Click Here to Start!"))
+    switch (sourceMenu.getSelectedId())
     {
-        sourceBtn.setButtonText("Karplus Strong");
+    case 1:
+        apc.setSource(1);
+        break;
+    case 2:
+        apc.setSource(2);
+        break;
+    case 3:
+        apc.setSource(3);
+        break;
+    case 4:
+        apc.setSource(4);
+        break;
     }
-    else if (sourceBtn.getButtonText() == "Karplus Strong")
-    {
-        sourceBtn.setButtonText("Triangle Wave");
-    }
-    else if (sourceBtn.getButtonText() == "Triangle Wave")
-    {
-        sourceBtn.setButtonText("Square Wave");
-    }
-    else
-    {
-        sourceBtn.setButtonText("Error");
-    }
-
-    apc.NextSource();
 }
 
 void GUIComponent::samplerateChanged()
@@ -400,3 +452,18 @@ void GUIComponent::bitdepthChanged()
         break;
     }
 }
+
+void GUIComponent::ToggleHelp()
+{
+    if (m_bHelpTextOn)
+    {
+        helpText.setVisible(false);
+        m_bHelpTextOn = false;
+    }
+    else
+    {
+        helpText.setVisible(true);
+        m_bHelpTextOn = true;
+    }
+}
+
