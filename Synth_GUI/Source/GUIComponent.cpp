@@ -14,6 +14,9 @@ void GUIComponent::Start()
 {
     addAndMakeVisible(chooseSampRate);
     addAndMakeVisible(samplerateMenu);
+    addAndMakeVisible(chooseBitDepth);
+    addAndMakeVisible(bitdepthMenu);
+    addAndMakeVisible(ditherButton);
     addAndMakeVisible(sourceMenu);
     addAndMakeVisible(numHarmsLabel);
     addAndMakeVisible(numHarms);
@@ -60,6 +63,22 @@ GUIComponent::GUIComponent(AudioProcessingComponent& c) :
     samplerateMenu.onChange = [this] {samplerateChanged(); };
     samplerateMenu.setSelectedId(1); //default 48k
 
+    //for configuring bit depth
+    chooseBitDepth.setFont(juce::Font{ 16.0f });
+    bitdepthMenu.addItem("32 bit", 1);
+    bitdepthMenu.addItem("24 bit", 2);
+    bitdepthMenu.addItem("20 bit", 3);
+    bitdepthMenu.addItem("16 bit", 4);
+    bitdepthMenu.addItem("8 bit", 5);
+
+    bitdepthMenu.onChange = [this] {bitdepthChanged(); };
+    bitdepthMenu.setSelectedId(1); //default 32 bit
+
+    //dither
+    ditherButton.setButtonText("Dither");
+    ditherButton.setState(juce::Button::ButtonState::buttonNormal);
+    ditherButton.onClick = [this] {apc.setDither(ditherButton.getToggleState()); };
+
     //for configuring source
     sourceMenu.addItem("Karplus", 1);
     sourceMenu.addItem("Sine", 2);
@@ -80,6 +99,7 @@ GUIComponent::GUIComponent(AudioProcessingComponent& c) :
     lpfCutoff.setSliderStyle(juce::Slider::Rotary);
     lpfCutoff.setRange(22, 10000);
     lpfCutoff.setValue(3000);
+    lpfCutoff.setNumDecimalPlacesToDisplay(2);
     lpfCutoff.onValueChange = [this] { apc.setLPFCutoff(lpfCutoff.getValue()); };
 
 
@@ -120,7 +140,7 @@ GUIComponent::GUIComponent(AudioProcessingComponent& c) :
     firstEffect.addItem("None", 1);
     firstEffect.addItem("LPF", 2);
     firstEffect.addItem("Reverb", 3);
-    firstEffect.setSelectedId(0); //default none
+    firstEffect.setSelectedId(1); //default none
     firstEffect.onChange = [this] { apc.setEffect(apc.effects[0], firstEffect.getSelectedId()); };
 
     //second effect
@@ -128,7 +148,7 @@ GUIComponent::GUIComponent(AudioProcessingComponent& c) :
     secondEffect.addItem("None", 1);
     secondEffect.addItem("LPF", 2);
     secondEffect.addItem("Reverb", 3);
-    secondEffect.setSelectedId(0); //default none
+    secondEffect.setSelectedId(1); //default none
     secondEffect.onChange = [this] { apc.setEffect(apc.effects[1], secondEffect.getSelectedId()); };
 }
 
@@ -159,30 +179,33 @@ void GUIComponent::resized() //GUI positions on screen
     //start button
     startButton.setBounds(200, 200, 300, 100);
 
-    // sample rate
+    // sample rate and bit depth
     chooseSampRate.setBounds(10, 10, getWidth() - 20, 20);
+    chooseBitDepth.setBounds(getWidth() - 300, 10, getWidth() - 20, 20);
     samplerateMenu.setBounds(10, 40, 100, 20);
+    bitdepthMenu.setBounds(getWidth() - 300, 40, 100, 20);
+    ditherButton.setBounds(getWidth() - 175, 40, 100, 20);
 
     // source
     chooseSource.setBounds(10, 70, getWidth() - 20, 20);
     sourceMenu.setBounds(10, 100, 100, 20);
 
     // low pass filter
-    lpfCutoff.setBounds(0, 150, 150, 150);
-    lpfCutoffLabel.setBounds(150, 155, getWidth() - 20, 20);
+    lpfCutoff.setBounds(10, 150, 150, 150);
+    lpfCutoffLabel.setBounds(10, 155, getWidth() - 20, 20);
 
     //comb filter
 
     //reverb
 
     //Effect combo box
-    firstEffect.setBounds(400, 200, 100, 20);
-    firstEffectLabel.setBounds(400, 230, 100, 20);
-    secondEffect.setBounds(400, 300, 100, 20);
-    secondEffectLabel.setBounds(400, 330, 100, 20);
+    firstEffect.setBounds(getWidth()-300, 200, 100, 20);
+    firstEffectLabel.setBounds(getWidth() - 300, 230, 100, 20);
+    secondEffect.setBounds(getWidth() - 300, 300, 100, 20);
+    secondEffectLabel.setBounds(getWidth() - 300, 330, 100, 20);
 
     // HelpText
-    helpText.setBounds(10, 400, 400, 200);
+    helpText.setBounds(10, getHeight()-200, 400, 200);
 }
 
 bool GUIComponent::keyPressed(const juce::KeyPress& key, juce::Component* originatingComponent)
@@ -402,6 +425,31 @@ void GUIComponent::samplerateChanged()
         break;
     default: //48k
         apc.setSampleRate(48000.0);
+        break;
+    }
+}
+
+void GUIComponent::bitdepthChanged()
+{
+    switch (bitdepthMenu.getSelectedId())
+    {
+    case 1: //32 bit
+        apc.setBitDepth(32.0);
+        break;
+    case 2: //24 bit
+        apc.setBitDepth(24.0);
+        break;
+    case 3: //20 bit
+        apc.setBitDepth(20.0);
+        break;
+    case 4: //16 bit
+        apc.setBitDepth(16.0);
+        break;
+    case 5: //8 bit
+        apc.setBitDepth(8.0);
+        break;
+    default: //32 bit
+        apc.setBitDepth(32.0);
         break;
     }
 }

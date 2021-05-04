@@ -16,37 +16,37 @@
 //==============================================================================
 AudioProcessingComponent::AudioProcessingComponent() :
     m_pfSoundArray(0),
+    m_dFreq(0),
+    m_fSampleRate(0),
+    m_fOutputSampRate(0),
+    m_fOutputBitDepth(0),
     m_iNumChannels(2),
 
     m_dWaveSamp(0),
     m_iNumKeysDown(0),
     m_kSource(Source::square),
-    m_dFreq(0),
     m_dTransposeVal(0),
     m_bPlaying(false),
     m_fNumHarmonics(200),
 
     m_bReverbOn(false),
+    m_bDitherOn(false),
     m_fLpfCutoff(3000),
     m_iCombFilterVal(500),
     m_fFlangerFrq(500),
     m_fChorusFrq(500),
     m_fVibratoFrq(500),
 
-    m_fSampleRate(0),
-    m_fOutputSampRate(0),
-
     effects(0),
-
     filt(0),
     KS(0),
     revrb(0),
-    Add(0)
+    Add(0),
+    mod(0)
 {
     // In your constructor, you should add any child components, and
     // initialise any special settings that your component needs.
 
-    manager.initialise(0, m_iNumChannels, nullptr, true);
     setAudioChannels(0, m_iNumChannels); // no inputs, two outputs
 }
 
@@ -70,6 +70,9 @@ AudioProcessingComponent::~AudioProcessingComponent()
     revrb->~ReverbComponent();
     revrb = 0;
 
+    mod->~ModEffectsComponent();
+    mod = 0;
+
     env.reset();
     antiAlias.reset();
 }
@@ -80,6 +83,8 @@ void AudioProcessingComponent::prepareToPlay(int samplesPerBlockExpected, double
 {
     m_fSampleRate = sampleRate;
     m_fOutputSampRate = sampleRate; 
+    m_fOutputBitDepth = 32.0;
+
     effects = new Effects[6]{ Effects::none, Effects::none, Effects::none, Effects::none, Effects::none, Effects::none };
 
     filt = new FilterComponent(m_fSampleRate); //create filter module
@@ -106,9 +111,9 @@ void AudioProcessingComponent::prepareToPlay(int samplesPerBlockExpected, double
     audioBuffer.setSize(1, samplesPerBlockExpected); //mono working buffer
     audioBuffer.clear();
 
-    audioSetup.bufferSize = samplesPerBlockExpected;
-    audioSetup.sampleRate = sampleRate;
-    manager.setAudioDeviceSetup(audioSetup, false);
+    //audioSetup.bufferSize = samplesPerBlockExpected;
+    //audioSetup.sampleRate = sampleRate;
+    //manager.setAudioDeviceSetup(audioSetup, false);
 }
 
 
@@ -159,26 +164,16 @@ void AudioProcessingComponent::getNextAudioBlock(const juce::AudioSourceChannelI
     }
     env.applyEnvelopeToBuffer(audioBuffer, 0, bufferToFill.numSamples);
 
-    // CUTOFF RANGE IS 22 Hz - 20 kHz, GAIN RANGE IS 0.0 - 1.0
-    filt->processMovingAvgFilt(p, p, bufferToFill.numSamples, filt->GetCutoffFreq(), 0.9); //LP Filter noise
-    mod->processChorus(p, p, bufferToFill.numSamples, 2.0);
-
-
-    ModuleManager(effects, audioBuffer, 0, bufferToFill.numSamples, p, m_fLpfCutoff, 0.9);
-    
-    //applyMovingAverageFilter(p, bufferToFill.numSamples, m_fLpfCutoff, 0.9); //LP filter
-
-    // CONVOLUTIONAL REVERB TESTING.. PRESS TAB TO TOGGLE REVERB ON/OFF
-    /*if (m_bReverbOn)
-    {
-        applyReverb(audioBuffer, 0, bufferToFill.numSamples);
-    }*/
+    ModuleManager(effects, audioBuffer, 0, bufferToFill.numSamples, p, m_fLpfCutoff, 0.9); //handle all effects here
 
     // send to the Juce output buffer (ALL CHANNELS)
     for (auto channel = 0; channel < bufferToFill.buffer->getNumChannels(); ++channel)
     {
         //perform downsampling here
         changeSampleRate(p, bufferToFill.numSamples);
+
+        //perform down quantizing here
+        changeBitDepth(p, bufferToFill.numSamples);
 
         //copy to output channels
         bufferToFill.buffer->copyFrom(channel, bufferToFill.startSample, p, bufferToFill.numSamples);
@@ -279,6 +274,16 @@ void AudioProcessingComponent::setVibratoFrq(float frq)
     m_fVibratoFrq = frq;
 }
 
+void AudioProcessingComponent::setBitDepth(float newBitDepth)
+{
+    m_fOutputBitDepth = newBitDepth;
+}
+
+void AudioProcessingComponent::setDither(bool enableDither)
+{
+    m_bDitherOn = enableDither;
+}
+
 void AudioProcessingComponent::changeSampleRate(float* pfAudio, int numSamples)
 {
     //first check for default/no change case  (48k)
@@ -290,16 +295,10 @@ void AudioProcessingComponent::changeSampleRate(float* pfAudio, int numSamples)
         antiAlias.reset();
         antiAlias.setCoefficients(juce::IIRCoefficients::makeLowPass(m_fSampleRate, m_fOutputSampRate * 0.5));
         antiAlias.processSamples(pfAudio, numSamples);
-
-
+        
         float samplesPerHold = m_fSampleRate / m_fOutputSampRate;
 
         // cubic interpolation on an arbitrary interval
-
-
-        audioSetup.sampleRate = m_fOutputSampRate;
-        audioSetup.bufferSize = 480;
-        manager.setAudioDeviceSetup(audioSetup, false);
 
 
         if (m_fOutputSampRate == 16000.0) //then check for the integer factor case (16k)
@@ -312,6 +311,50 @@ void AudioProcessingComponent::changeSampleRate(float* pfAudio, int numSamples)
         else //rational factor
         {
 
+        }
+    }
+}
+
+void AudioProcessingComponent::changeBitDepth(float* pfAudio, int numSamples)
+{
+    //first check for default/no change case  (32 bit / float)
+    if (m_fOutputBitDepth == 32.0) { return; }
+
+    else
+    {
+        float M = pow(2, m_fOutputBitDepth); //number of steps
+        float delta = 2.0 / M; //step size
+        
+        if (m_bDitherOn) //if dither is on...
+        {
+            for (int i = 0; i < numSamples; i++) //quantize block
+            {
+                float r1 = random.nextFloat(); //generate random sample
+                float a = -1.0; //triangle noise bounds
+                float b = 1.0;
+                float r = 0.0; //random sample
+                if (r1 < 0.5) {
+                    r = a + sqrt(r1 * (b - a)*(0.0 - a));
+                }
+                else {
+                    r = b - sqrt((1 - r1) * (b - a) * b);
+                }
+
+                float rdelta = 2.0 / (pow(2, 32.0 - m_fOutputBitDepth)); //step size for noise bit depth
+                r = (floor(r / rdelta) * rdelta) + (rdelta * 0.5); //get r to the right bit size
+
+                pfAudio[i] = pfAudio[i] + r; //add noise to the current sample
+                pfAudio[i] = (floor(pfAudio[i] / delta) * delta) + (delta * 0.5); //mid rise
+                //pfAudio[i] = (floor(pfAudio[i] / delta) * delta); //mid tread
+            }
+        }
+        else
+        {
+            for (int i = 0; i < numSamples; i++) //quantize block
+            {
+                pfAudio[i] = (floor(pfAudio[i] / delta) * delta) + (delta * 0.5); //mid rise
+                //pfAudio[i] = (floor(pfAudio[i] / delta) * delta); //mid tread
+            }
         }
     }
 }

@@ -14,7 +14,7 @@
 #include <JuceHeader.h>
 #include <cmath>
 #include "RingBuffer.h"
-const float pi = 3.14159265358979323846;
+#include <math.h>
 
 //==============================================================================
 /*
@@ -67,7 +67,7 @@ public:
 
             // delay the delayedSamp by a delay given by the lfo.
             // implement the A, M, BL, and FF later!!!
-            int delay = static_cast<int>(sin(2 * pi * m_fPhiFlange) * A) + M;
+            int delay = static_cast<int>(sin(2 * M_PI * m_fPhiFlange) * A) + M;
             float delayed = buf->getDelayed(delay);
             float output = (curSamp * BL) + (delayed * FF);
 
@@ -91,7 +91,7 @@ public:
             // delay the curSamp by an lfo.
             buf->pushSample(curSamp);
 
-            int delay = static_cast<int>((sin(2 * pi * m_fPhiVibrato) + 1.00) * m_iBufSize/2.0);
+            int delay = static_cast<int>((sin(2 * M_PI * m_fPhiVibrato) + 1.00) * m_iBufSize/2.0);
             float output = buf->getDelayed(delay) * 0.5; //not sure why the multiplying by 0.5
 
             m_fPhiVibrato = m_fPhiVibrato + deltaPhi;
@@ -118,7 +118,7 @@ public:
             // delay the curSamp by an lfo.
             buf->pushSample(curSamp);
 
-            int delay = static_cast<int>(sin(2 * pi * m_fPhiChorus)*A) + M;
+            int delay = static_cast<int>(sin(2 * M_PI * m_fPhiChorus)*A) + M;
             float delayed = buf->getDelayed(delay);
             float output = (curSamp * BL) + (delayed * FF); 
 
@@ -182,7 +182,7 @@ private:
     {
         for (int i = 0; i < m_iTableSize; i++)
         {
-            table->pushSample(static_cast<float>(sin(2 * pi * i * m_fFreq / m_fSampleRate)));
+            table->pushSample(static_cast<float>(sin(2 * M_PI * i * m_fFreq / m_fSampleRate)));
         }
     }
 

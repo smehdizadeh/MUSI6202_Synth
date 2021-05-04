@@ -49,6 +49,8 @@ public:
     void setPlaying(bool); //Turn synth on or off
     void toggleReverb(); //Toggles reverb
     void setSampleRate(float newSampRate); //called by GUIComponent when user changes samp rate
+    void setBitDepth(float newBitDepth); //called by GUIComponent when user changes bit depth
+    void setDither(bool enableDither); //called by GUIComponent when user toggles dither button
     void setSource(int); //called by GUIComponent when user changes synth sound source/osc
     void setNumHarmonics(float); //Set number of harmonics for additive synthesis
     void setLPFCutoff(float); //Set the LPF cutoff frequency
@@ -87,6 +89,7 @@ public:
 private:
     //=========================================================================
     void changeSampleRate(float* pfAudio, int numSamples); //called within APC during getNextAudioBlock to change the samp rate at the output
+    void changeBitDepth(float* pfAudio, int numSamples); //called within APC during getNextAudioBlock to change the bit depth at the output
     void applyReverb(juce::AudioBuffer<float>&, int, int);
     void applyMovingAverageFilter(float*, int, float, float);
     void applyCombFilter();
@@ -109,6 +112,7 @@ private:
     
     //Effects variables
     bool m_bReverbOn; //Is the reverb on?
+    bool m_bDitherOn; //Is dither enabled?
     float m_fLpfCutoff; //Cutoff frequency of the LPF
     int m_iCombFilterVal; //Comb filter: number of delayed samples
     float m_fFlangerFrq; //Flanger frequency
@@ -118,13 +122,12 @@ private:
     //Sample rate variables
     float m_fSampleRate; //internal sample rate
     float m_fOutputSampRate; //output sample rate
-   
+    float m_fOutputBitDepth; //output bit depth
+
     juce::AudioBuffer<float> audioBuffer; //for temporary storage and processings
     juce::ADSR env; //envelope to apply to sound gen
     juce::IIRFilter antiAlias; //anti aliasing filter for downsampling
-    juce::AudioDeviceManager manager;
-    juce::AudioDeviceManager::AudioDeviceSetup audioSetup;
-
+    juce::Random random; //noise source for dither
 
     // Modules
     FilterComponent* filt;
