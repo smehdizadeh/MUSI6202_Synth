@@ -37,7 +37,8 @@ AudioProcessingComponent::AudioProcessingComponent() :
 {
     // In your constructor, you should add any child components, and
     // initialise any special settings that your component needs.
-    manager.initialise(0, m_iNumChannels, nullptr, true);
+
+    //manager.initialise(0, m_iNumChannels, nullptr, true);
     setAudioChannels(0, m_iNumChannels); // no inputs, two outputs
     m_kSource = Source::square;
 }
@@ -96,9 +97,9 @@ void AudioProcessingComponent::prepareToPlay(int samplesPerBlockExpected, double
     audioBuffer.setSize(1, samplesPerBlockExpected); //mono working buffer
     audioBuffer.clear();
 
-    audioSetup.bufferSize = samplesPerBlockExpected;
-    audioSetup.sampleRate = sampleRate;
-    manager.setAudioDeviceSetup(audioSetup, false);
+    //audioSetup.bufferSize = samplesPerBlockExpected;
+    //audioSetup.sampleRate = sampleRate;
+    //manager.setAudioDeviceSetup(audioSetup, false);
 }
 
 
@@ -255,9 +256,9 @@ void AudioProcessingComponent::changeSampleRate(float* pfAudio, int numSamples)
         antiAlias.processSamples(pfAudio, numSamples);
         
         //update the sample rate in the device manager
-        audioSetup.sampleRate = m_fOutputSampRate;
-        audioSetup.bufferSize = m_fOutputSampRate * 0.01;
-        manager.setAudioDeviceSetup(audioSetup, false);
+        //audioSetup.sampleRate = m_fOutputSampRate;
+        //audioSetup.bufferSize = m_fOutputSampRate * 0.01;
+        //manager.setAudioDeviceSetup(audioSetup, false);
 
         if (m_fOutputSampRate == 16000.0) //then check for the integer factor case (16k)
         {
@@ -288,9 +289,9 @@ void AudioProcessingComponent::changeBitDepth(float* pfAudio, int numSamples)
             for (int i = 0; i < numSamples; i++) //quantize block
             {
                 float r1 = random.nextFloat(); //generate random sample
-                float a = -1.; //triangle noise bounds
-                float b = 1.;
-                float r = 0; //random sample
+                float a = -1.0; //triangle noise bounds
+                float b = 1.0;
+                float r = 0.0; //random sample
                 if (r1 < 0.5) {
                     r = a + sqrt(r1 * (b - a)*(0.0 - a));
                 }

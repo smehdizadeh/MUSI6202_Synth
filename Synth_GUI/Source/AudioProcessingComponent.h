@@ -68,7 +68,7 @@ public:
 
 private:
     //=========================================================================
-    void changeSampleRate(float* pfAudio, int numSamples); //called within APC during getNextAudioBlock to change the samp rate at the output
+    void changeSampleRate(float* pfAudio, int numInputSamples); //called within APC during getNextAudioBlock to change the samp rate at the output
     void changeBitDepth(float* pfAudio, int numSamples); //called within APC during getNextAudioBlock to change the bit depth at the output
 
     //=========================================================================
