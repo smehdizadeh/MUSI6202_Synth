@@ -217,18 +217,6 @@ void AudioProcessingComponent::setPlaying(bool isPlaying)
 	m_bPlaying = isPlaying;
 }
 
-void AudioProcessingComponent::toggleReverb()
-{
-    if (m_bReverbOn)
-    {
-        m_bReverbOn = false;
-    }
-    else
-    {
-        m_bReverbOn = true;
-    }
-}
-
 float AudioProcessingComponent::getSampleRate()
 {
     return m_fOutputSampRate;
