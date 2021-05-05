@@ -97,8 +97,8 @@ public:
         for (int i = 1; i <= numHarm; i++)
         {
             double temp = 0;
-            temp += 0.25 * amp * sin(2 * pi * m_dClock * frq * (2 * i - 1));
-            temp /= (2 * i - 1);
+            temp += amp * sin(2 * pi * m_dClock * frq * ((2 * i) - 1));
+            temp /= ((2 * i) - 1); // gives odd harmonics starting at 1 for i >= 1
             waveSamp += temp;
         }
 
@@ -112,13 +112,14 @@ public:
 
         for (int i = 1; i <= numHarm; i++)
         {
+            // (2*i) - 1 will give odd numbers starting at 1 for i >= 1
             double temp = 0;
-            temp += amp * sin(2 * pi * m_dClock * frq * (2 * i + 1));
-            temp *= pow(-1, i) * pow((2 * i + 1), -2);
+            temp += amp * sin(2 * pi * m_dClock * frq * ((2 * i) - 1));
+            temp *= pow(-1, i+1) * pow(((2 * i) - 1), -2);
             waveSamp += temp;
         }
 
-        waveSamp *= 8 / pow(pi, 2);
+        waveSamp *= 8 / pow(pi, 2); // normalization of output samples
         m_dClock += 1 / fs;
     }
 
