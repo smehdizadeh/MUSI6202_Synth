@@ -90,7 +90,7 @@ public:
 
     ~Additive() {}
 
-    void GetSquareSamp(double& waveSamp, double fs, double amp, double frq, double numHarm)
+    void GetSquareSamp(double& waveSamp, double fs, double amp, double frq, int numHarm)
     {
         waveSamp = 0;
 
@@ -106,7 +106,7 @@ public:
         m_dClock += 1/fs;
     }
 
-    void GetTriSamp(double& waveSamp, double fs, double amp, double frq, double numHarm)
+    void GetTriSamp(double& waveSamp, double fs, double amp, double frq, int numHarm)
     {
         waveSamp = 0;
 
