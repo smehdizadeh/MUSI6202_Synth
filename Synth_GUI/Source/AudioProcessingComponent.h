@@ -108,7 +108,7 @@ private:
     double m_dFreq; // Frequency of note
     double m_dTransposeVal; //Octave
     bool m_bPlaying; // Is the synth playing?
-    float m_fNumHarmonics; //Number of harmonics in additive synthesis
+    float m_fNumHarmonics; //Number of harmonics in additive synthesisunsafe:https://www.audiokinetic.com/about/news/christina-chu-promoted-to-cfo/
     
     //Effects variables
     bool m_bDitherOn; //Is dither enabled?

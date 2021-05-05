@@ -130,7 +130,7 @@ GUIComponent::GUIComponent(AudioProcessingComponent& c) :
     //for configuring flanger
     flangerFrqLabel.setFont(juce::Font{ 16.0f });
     flangerFrq.setSliderStyle(juce::Slider::Rotary);
-    flangerFrq.setRange(0, 100);
+    flangerFrq.setRange(0, 5);
     flangerFrq.setNumDecimalPlacesToDisplay(2);
     chorusFrq.setValue(0);
     flangerFrq.onValueChange = [this] { apc.setFlangerFrq(flangerFrq.getValue()); };
@@ -138,7 +138,7 @@ GUIComponent::GUIComponent(AudioProcessingComponent& c) :
     //for configuring chorus
     chorusFrqLabel.setFont(juce::Font{ 16.0f });
     chorusFrq.setSliderStyle(juce::Slider::Rotary);
-    chorusFrq.setRange(0, 100);
+    chorusFrq.setRange(0, 5);
     chorusFrq.setNumDecimalPlacesToDisplay(2);
     chorusFrq.setValue(0);
     chorusFrq.onValueChange = [this] { apc.setChorusFrq(chorusFrq.getValue()); };
@@ -146,7 +146,7 @@ GUIComponent::GUIComponent(AudioProcessingComponent& c) :
     //for configuring vibrato
     vibratoFrqLabel.setFont(juce::Font{ 16.0f });
     vibratoFrq.setSliderStyle(juce::Slider::Rotary);
-    vibratoFrq.setRange(0, 100);
+    vibratoFrq.setRange(0, 5);
     vibratoFrq.setNumDecimalPlacesToDisplay(2);
     vibratoFrq.setValue(0);
     vibratoFrq.onValueChange = [this] { apc.setVibratoFrq(vibratoFrq.getValue()); };
