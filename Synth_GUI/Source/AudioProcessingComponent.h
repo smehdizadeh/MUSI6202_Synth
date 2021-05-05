@@ -16,6 +16,7 @@
 #include "ModEffectsComponent.h"
 
 #include "ReverbComponent.h"
+#include "RingBuffer.h"
 #include <windows.h> //For Debug macro
 #include <debugapi.h> //For Debug macro
 
@@ -89,7 +90,7 @@ public:
 
 private:
     //=========================================================================
-    void changeSampleRate(float* pfAudio, int numSamples); //called within APC during getNextAudioBlock to change the samp rate at the output
+    void changeSampleRate(float* pfInputAudio, float* pfOutputAudio, int numOutputSamples); //called within APC during getNextAudioBlock to change the samp rate at the output
     void changeBitDepth(float* pfAudio, int numSamples); //called within APC during getNextAudioBlock to change the bit depth at the output
     void applyReverb(juce::AudioBuffer<float>&, int, int);
     void applyMovingAverageFilter(float*, int, float, float);
@@ -120,12 +121,14 @@ private:
     float m_fChorusFrq; //Chorus frequency
     float m_fVibratoFrq; // Vibrato freqency
 
-    //Sample rate variables
+    //Sample rate and bit depth variables
     float m_fSampleRate; //internal sample rate
     float m_fOutputSampRate; //output sample rate
+    float m_fResampIndex; //read index for resamp ring buffer
     float m_fOutputBitDepth; //output bit depth
 
     juce::AudioBuffer<float> audioBuffer; //for temporary storage and processings
+    juce::AudioBuffer<float> audioBufferResamp; //for storage after downsampling
     juce::ADSR env; //envelope to apply to sound gen
     juce::IIRFilter antiAlias; //anti aliasing filter for downsampling
     juce::Random random; //noise source for dither
@@ -136,6 +139,8 @@ private:
     KarplusStrong* KS;
     ReverbComponent* revrb;
     Additive* Add;
+
+    RingBuffer* m_pInterpolBuffer; //for sample rate conversion interpolation ONLY
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (AudioProcessingComponent)
 };

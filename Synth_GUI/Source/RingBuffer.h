@@ -52,6 +52,12 @@ public:
         int readIdx = ((m_iWriteIdx + m_iRingBuffSize) - d -1) % m_iRingBuffSize; //get a read index for delayed sample
         return m_pfBuff[readIdx];
     }
+
+    float getSample(int index)
+    {
+        int readIdx = index % m_iRingBuffSize;
+        return m_pfBuff[readIdx];
+    }
    
 private:
     //=========================================================================

@@ -20,6 +20,7 @@ AudioProcessingComponent::AudioProcessingComponent() :
     m_fSampleRate(0),
     m_fOutputSampRate(0),
     m_fOutputBitDepth(0),
+    m_fResampIndex(0),
     m_iNumChannels(2),
 
     m_dWaveSamp(0),
@@ -42,7 +43,8 @@ AudioProcessingComponent::AudioProcessingComponent() :
     KS(0),
     revrb(0),
     Add(0),
-    mod(0)
+    mod(0),
+    m_pInterpolBuffer(0)
 {
     // In your constructor, you should add any child components, and
     // initialise any special settings that your component needs.
@@ -54,6 +56,7 @@ AudioProcessingComponent::~AudioProcessingComponent()
 {
     shutdownAudio();
     audioBuffer.clear();
+    audioBufferResamp.clear();
 
     delete[] m_pfSoundArray;
     delete[] effects;
@@ -73,6 +76,9 @@ AudioProcessingComponent::~AudioProcessingComponent()
     mod->~ModEffectsComponent();
     mod = 0;
 
+    m_pInterpolBuffer->~RingBuffer();
+    m_pInterpolBuffer = 0;
+
     env.reset();
     antiAlias.reset();
 }
@@ -81,15 +87,22 @@ AudioProcessingComponent::~AudioProcessingComponent()
 //=============================================================================
 void AudioProcessingComponent::prepareToPlay(int samplesPerBlockExpected, double sampleRate)
 {
+    //m_fSampleRate = 48000.0; //internal working sample rate locked to 48k
     m_fSampleRate = sampleRate;
-    m_fOutputSampRate = sampleRate; 
-    m_fOutputBitDepth = 32.0;
+
+    jassert(sampleRate <= m_fSampleRate); //****SYSTEM SAMPLE RATE MUST BE 48k OR LOWER. NO UPSAMPLING IS IMPLEMENTED****
+
+    m_fOutputSampRate = sampleRate; //grabbed from the system and passed to this method^^
+    m_fOutputBitDepth = 32.0; //internal bit depth is locked to 32 (working w/ floats)
 
     effects = new Effects[6]{ Effects::none, Effects::none, Effects::none, Effects::none, Effects::none, Effects::none };
 
     filt = new FilterComponent(m_fSampleRate); //create filter module
     revrb = new ReverbComponent(m_fSampleRate, samplesPerBlockExpected); //create reverb module
     mod = new ModEffectsComponent(m_fSampleRate); // create modulated effects module
+
+    m_pInterpolBuffer = new RingBuffer(ceil(samplesPerBlockExpected * (m_fSampleRate / m_fOutputSampRate) + 2)); //cubic interpolation buffer
+    m_fResampIndex = int(m_fSampleRate * 0.01) + 1; //481
 
     // Code for Karplus Strong Algorithm 
     KS = new KarplusStrong(m_fSampleRate); //create KS generator
@@ -100,7 +113,7 @@ void AudioProcessingComponent::prepareToPlay(int samplesPerBlockExpected, double
     Add = new Additive();
   
     //Envelope
-    env.setSampleRate(sampleRate);
+    env.setSampleRate(m_fSampleRate);
     juce::ADSR::Parameters params;
     params.attack = 0.1;
     params.decay = 0.1;
@@ -108,12 +121,11 @@ void AudioProcessingComponent::prepareToPlay(int samplesPerBlockExpected, double
     params.release = 0.5;
     env.setParameters(params);
   
-    audioBuffer.setSize(1, samplesPerBlockExpected); //mono working buffer
+    audioBuffer.setSize(1, samplesPerBlockExpected); //mono working buffer size 480 (corresponding to interal 48k)
     audioBuffer.clear();
 
-    //audioSetup.bufferSize = samplesPerBlockExpected;
-    //audioSetup.sampleRate = sampleRate;
-    //manager.setAudioDeviceSetup(audioSetup, false);
+    audioBufferResamp.setSize(1, samplesPerBlockExpected); //size of the output buffer (post resampling)
+    audioBufferResamp.clear();
 }
 
 
@@ -123,6 +135,7 @@ void AudioProcessingComponent::getNextAudioBlock(const juce::AudioSourceChannelI
     // ***** EVERYTHING DONE IN MONO AND THEN COPIED TO ADDITIONAL CHANNELS ******
 
     auto* p = audioBuffer.getWritePointer(0); //pointer to working buffer
+    auto* pResamp = audioBufferResamp.getWritePointer(0); //pointer to resampled buffer
 
     for (auto sample = 0; sample < bufferToFill.numSamples; ++sample)
     {
@@ -170,13 +183,13 @@ void AudioProcessingComponent::getNextAudioBlock(const juce::AudioSourceChannelI
     for (auto channel = 0; channel < bufferToFill.buffer->getNumChannels(); ++channel)
     {
         //perform downsampling here
-        changeSampleRate(p, bufferToFill.numSamples);
+        changeSampleRate(p, pResamp, bufferToFill.numSamples);
 
         //perform down quantizing here
-        changeBitDepth(p, bufferToFill.numSamples);
+        changeBitDepth(pResamp, bufferToFill.numSamples);
 
         //copy to output channels
-        bufferToFill.buffer->copyFrom(channel, bufferToFill.startSample, p, bufferToFill.numSamples);
+        bufferToFill.buffer->copyFrom(channel, bufferToFill.startSample, pResamp, bufferToFill.numSamples);
     }
 }
 
@@ -214,12 +227,7 @@ void AudioProcessingComponent::toggleReverb()
         m_bReverbOn = true;
     }
 }
-/*
-void AudioProcessingComponent::setSampleRate(float newSampRate)
-{
-    m_fOutputSampRate = newSampRate;
-}
-*/
+
 float AudioProcessingComponent::getSampleRate()
 {
     return m_fOutputSampRate;
@@ -289,34 +297,77 @@ void AudioProcessingComponent::setDither(bool enableDither)
     m_bDitherOn = enableDither;
 }
 
-void AudioProcessingComponent::changeSampleRate(float* pfAudio, int numSamples)
+void AudioProcessingComponent::changeSampleRate(float* pfInputAudio, float* pfOutputAudio, int numOutputSamples)
 {
     //first check for default/no change case  (48k)
-    if (m_fOutputSampRate == 48000.0) { return; }
+    if (m_fOutputSampRate == 48000.0) 
+    { 
+        //copy input to output
+        for (int i = 0; i < numOutputSamples; i++)
+        {
+            pfOutputAudio[i] = pfInputAudio[i];
+        }
+        return; 
+    }
 
     else
     {
         //apply anti-aliasing filter
         antiAlias.reset();
         antiAlias.setCoefficients(juce::IIRCoefficients::makeLowPass(m_fSampleRate, m_fOutputSampRate * 0.5));
-        antiAlias.processSamples(pfAudio, numSamples);
-        
-        float samplesPerHold = m_fSampleRate / m_fOutputSampRate;
+        antiAlias.processSamples(pfInputAudio, numOutputSamples);
 
-        // cubic interpolation on an arbitrary interval
-
-
-        if (m_fOutputSampRate == 16000.0) //then check for the integer factor case (16k)
+        for (int i = 0; i < numOutputSamples; i++)
         {
-            for (int i = 0; i < numSamples; i += 3) //take every third sample
+            pfOutputAudio[i] = pfInputAudio[i];
+        }
+        /* ***** THIS IS OUR ATTEMPT AT INTERPOLATION... FOR SOME REASON WE GET NO AUDIO...******
+        if (int(m_fSampleRate) % int(m_fOutputSampRate) == 0) //then check for the integer factor case
+        {
+            int f = m_fSampleRate / m_fOutputSampRate; //integer downsampling factor
+            int j = 0; //index of the output buffer
+            for (int i = 0; i < int(m_fSampleRate * 0.01); i += f) //take every fth sample
             {
-
+                pfOutputAudio[j] = pfInputAudio[i];
+                j++;
             }
         }
         else //rational factor
         {
+            float f = m_fSampleRate / m_fOutputSampRate; //rational factor
 
+            //put all incoming samples into the ring buffer
+            for (int i = 0; i < int(m_fSampleRate * 0.01); i++)
+            {
+                m_pInterpolBuffer->pushSample(pfInputAudio[i]);
+            }
+
+            //start filling out output buffer
+            for (int i = 0; i < numOutputSamples; i++)
+            {
+                //cubic interpolation
+                int i1 = floor(m_fResampIndex); //indeces...
+                int i0 = i1 - 1;
+                int i2 = i1 + 1;
+                int i3 = i1 + 2;
+
+                float p0 = m_pInterpolBuffer->getSample(i0); //corresponding buffer values...
+                float p1 = m_pInterpolBuffer->getSample(i1);
+                float p2 = m_pInterpolBuffer->getSample(i2);
+                float p3 = m_pInterpolBuffer->getSample(i3);
+
+                float a = (-0.5 * p0) + (1.5 * p1) - (1.5 * p2) + (0.5 * p3); //coefficients...
+                float b = p0 - (2.5 * p1) + (2.0 * p2) - (0.5 * p3);
+                float c = (-0.5 * p0) + (0.5 * p2);
+                float d = p1;
+
+                pfOutputAudio[i] = (a * pow(m_fResampIndex, 3)) + (b * pow(m_fResampIndex, 2)) + (c * m_fResampIndex) + d;
+            
+                m_fResampIndex = m_fResampIndex + f; //update read index
+            }
+            m_fResampIndex = m_fResampIndex - ceil(numOutputSamples * (m_fSampleRate / m_fOutputSampRate) + 2); //bring this number back within range
         }
+        */
     }
 }
 
