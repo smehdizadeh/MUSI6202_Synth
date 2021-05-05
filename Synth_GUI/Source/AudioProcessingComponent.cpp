@@ -1,9 +1,9 @@
 /*
   ==============================================================================
 
-    AudioProcessingComponent.cpp
-    Created: 31 Mar 2021 11:52:36am
-    Author:  sophi
+	AudioProcessingComponent.cpp
+	Created: 31 Mar 2021 11:52:36am
+	Author:  sophi
 
   ==============================================================================
 */
@@ -45,8 +45,8 @@ AudioProcessingComponent::AudioProcessingComponent() :
     mod(0),
     m_pInterpolBuffer(0)
 {
-    //manager.initialise(0, m_iNumChannels, nullptr, true);
-    setAudioChannels(0, m_iNumChannels); // no inputs, two outputs
+	//manager.initialise(0, m_iNumChannels, nullptr, true);
+	setAudioChannels(0, m_iNumChannels); // no inputs, two outputs
 }
 
 AudioProcessingComponent::~AudioProcessingComponent()
@@ -55,29 +55,29 @@ AudioProcessingComponent::~AudioProcessingComponent()
     audioBuffer.clear();
     audioBufferResamp.clear();
 
-    delete[] m_pfSoundArray;
-    delete[] effects;
+	delete[] m_pfSoundArray;
+	delete[] effects;
 
-    KS->~KarplusStrong();
-    KS = 0;
-  
-    Add->~Additive();
-    Add = 0;
+	KS->~KarplusStrong();
+	KS = 0;
 
-    filt->~FilterComponent();
-    filt = 0;
-  
-    revrb->~ReverbComponent();
-    revrb = 0;
+	Add->~Additive();
+	Add = 0;
 
-    mod->~ModEffectsComponent();
-    mod = 0;
+	filt->~FilterComponent();
+	filt = 0;
 
     m_pInterpolBuffer->~RingBuffer();
     m_pInterpolBuffer = 0;
 
     env.reset();
     antiAlias.reset();
+
+	revrb->~ReverbComponent();
+	revrb = 0;
+
+	mod->~ModEffectsComponent();
+	mod = 0;
 }
 
 
@@ -196,25 +196,25 @@ void AudioProcessingComponent::getNextAudioBlock(const juce::AudioSourceChannelI
 
 void AudioProcessingComponent::releaseResources()
 {
-    
+
 }
 
 void AudioProcessingComponent::setFrq(double m)
 {
-    m += m_dTransposeVal;
-    m_bPlaying = true;
-    m_iNumKeysDown += 1;
-    m_dFreq = pow(2, (m - 69) / 12) * 440;
+	m += m_dTransposeVal;
+	m_bPlaying = true;
+	m_iNumKeysDown += 1;
+	m_dFreq = pow(2, (m - 69) / 12) * 440;
 }
 
 void AudioProcessingComponent::setTranspositionVal(double val)
 {
-    m_dTransposeVal = val;
+	m_dTransposeVal = val;
 }
 
 void AudioProcessingComponent::setPlaying(bool isPlaying)
 {
-    m_bPlaying = isPlaying;
+	m_bPlaying = isPlaying;
 }
 
 void AudioProcessingComponent::toggleReverb()
@@ -236,66 +236,66 @@ float AudioProcessingComponent::getSampleRate()
 
 void AudioProcessingComponent::setSource(int source)
 {
-    if (source == 1)
-    {
-        m_kSource = Source::karplus;
-    }
-    else if (source == 2)
-    {
-        m_kSource = Source::sine;
-    }
-    else if (source == 3)
-    {
-        m_kSource = Source::square;
-    }
-    else if (source == 4)
-    {
-        m_kSource = Source::triangle;
-    }
-    else
-    {
-        m_kSource = Source::sine;
-    }
+	if (source == 1)
+	{
+		m_kSource = Source::karplus;
+	}
+	else if (source == 2)
+	{
+		m_kSource = Source::sine;
+	}
+	else if (source == 3)
+	{
+		m_kSource = Source::square;
+	}
+	else if (source == 4)
+	{
+		m_kSource = Source::triangle;
+	}
+	else
+	{
+		m_kSource = Source::sine;
+	}
 }
 
 void AudioProcessingComponent::setNumHarmonics(int numHarm)
 {
-    m_fNumHarmonics = numHarm;
+	m_fNumHarmonics = numHarm;
 }
 
 void AudioProcessingComponent::setLPFCutoff(float frq)
 {
-    m_fLpfCutoff = frq;
+	m_fLpfCutoff = frq;
 }
 
 void AudioProcessingComponent::setCombFilterVal(int val)
 {
-    m_iCombFilterVal = val;
+	m_iCombFilterVal = val;
 }
 
 void AudioProcessingComponent::setFlangerFrq(float frq)
 {
-    m_fFlangerFrq = frq;
+	m_fFlangerFrq = frq;
 }
 
 void AudioProcessingComponent::setChorusFrq(float frq)
 {
-    m_fChorusFrq = frq;
+	m_fChorusFrq = frq;
 }
 
 void AudioProcessingComponent::setVibratoFrq(float frq)
 {
-    m_fVibratoFrq = frq;
+	m_fVibratoFrq = frq;
 }
 
 void AudioProcessingComponent::setBitDepth(float newBitDepth)
 {
-    m_fOutputBitDepth = newBitDepth;
+	m_fOutputBitDepth = newBitDepth;
 }
 
 void AudioProcessingComponent::setDither(bool enableDither)
 {
-    m_bDitherOn = enableDither;
+	m_bDitherOn = enableDither;
 }
 
 void AudioProcessingComponent::changeSampleRate(float* pfInputAudio, float* pfOutputAudio, int numOutputSamples)
@@ -374,140 +374,129 @@ void AudioProcessingComponent::changeSampleRate(float* pfInputAudio, float* pfOu
 
 void AudioProcessingComponent::changeBitDepth(float* pfAudio, int numSamples)
 {
-    //first check for default/no change case  (32 bit / float)
-    if (m_fOutputBitDepth == 32.0) { return; }
+	float w = m_fOutputBitDepth; // desired output bit depth is w.
+	float s = 32.0 - w; // dither bit depth is s where s+w = 32 (the maximum bit depth)
 
-    else
-    {
-        float M = pow(2, m_fOutputBitDepth); //number of steps
-        float delta = 2.0 / M; //step size
-        
-        if (m_bDitherOn) //if dither is on...
-        {
-            for (int i = 0; i < numSamples; i++) //quantize block
-            {
-                float r1 = random.nextFloat(); //generate random sample
-                float a = -1.0; //triangle noise bounds
-                float b = 1.0;
-                float r = 0.0; //random sample
-                if (r1 < 0.5) {
-                    r = a + sqrt(r1 * (b - a)*(0.0 - a));
-                }
-                else {
-                    r = b - sqrt((1 - r1) * (b - a) * b);
-                }
+	float M = pow(2.0, w); //number of steps
+	float delta = 2.0 / M; //step size
 
-                float rdelta = 2.0 / (pow(2, 32.0 - m_fOutputBitDepth)); //step size for noise bit depth
-                r = (floor(r / rdelta) * rdelta) + (rdelta * 0.5); //get r to the right bit size
+	for (int i = 0; i < numSamples; i++) //quantize block
+	{
+		if (m_bDitherOn) //if dither is on...
+		{
+			// generate triangular noise distribution (add 2 rectangular noise and take average so it is between -1 and 1)
+			float r1 = random.nextFloat() - 0.5;
+			float r2 = random.nextFloat() - 0.5;
+			float rDith = r1 + r2;
 
-                pfAudio[i] = pfAudio[i] + r; //add noise to the current sample
-                pfAudio[i] = (floor(pfAudio[i] / delta) * delta) + (delta * 0.5); //mid rise
-                //pfAudio[i] = (floor(pfAudio[i] / delta) * delta); //mid tread
-            }
-        }
-        else
-        {
-            for (int i = 0; i < numSamples; i++) //quantize block
-            {
-                pfAudio[i] = (floor(pfAudio[i] / delta) * delta) + (delta * 0.5); //mid rise
-                //pfAudio[i] = (floor(pfAudio[i] / delta) * delta); //mid tread
-            }
-        }
-    }
+			float rDelta =  2.0 / (pow(2.0, s)); //step size for noise bit depth
+			float quantR = floor((rDith * delta / rDelta) + 0.5);
+			float r = rDelta * quantR; //get r to the right bit size
+
+			float quantized = floor(((pfAudio[i] + r) / delta) + 0.5); //mid rise
+			pfAudio[i] = delta * quantized; 
+		}
+		else {
+			float quantized = floor(((pfAudio[i]) / delta) + 0.5);
+			pfAudio[i] = delta * quantized; //mid rise
+		}
+	}
+
+
 }
 
 void AudioProcessingComponent::applyReverb(juce::AudioBuffer<float>& outputAudio, int startSample, int numSamples)
 {
-    revrb->renderNextSubBlock(outputAudio, startSample, numSamples);
+	revrb->renderNextSubBlock(outputAudio, startSample, numSamples);
 }
 
 void AudioProcessingComponent::applyMovingAverageFilter(float* ppfBuffer, int iBuffSize, float fcutoff, float fGain)
 {
-    filt->processMovingAvgFilt(ppfBuffer, ppfBuffer, iBuffSize, m_fLpfCutoff, 0.9); //LP Filter
+	filt->processMovingAvgFilt(ppfBuffer, ppfBuffer, iBuffSize, m_fLpfCutoff, 0.9); //LP Filter
 }
 
 void AudioProcessingComponent::applyCombFilter(float* ppfBuffer, int iBuffSize, int delayInSamps, float fGain)
 {
-    filt->processCombFilter(ppfBuffer, ppfBuffer, iBuffSize, delayInSamps, fGain);
+	filt->processCombFilter(ppfBuffer, ppfBuffer, iBuffSize, delayInSamps, fGain);
 }
 
 void AudioProcessingComponent::applyFlanger(float* ppfBuffer, int iBuffSize, float flangeFrq)
 {
-    mod->processFlanger(ppfBuffer, ppfBuffer, iBuffSize, flangeFrq);
+	mod->processFlanger(ppfBuffer, ppfBuffer, iBuffSize, flangeFrq);
 }
 
 void AudioProcessingComponent::applyChorus(float* ppfBuffer, int iBuffSize, float chorusFrq)
 {
-    mod->processFlanger(ppfBuffer, ppfBuffer, iBuffSize, chorusFrq);
+	mod->processFlanger(ppfBuffer, ppfBuffer, iBuffSize, chorusFrq);
 }
 
 void AudioProcessingComponent::applyVibrato(float* ppfBuffer, int iBuffSize, float vibratoFrq)
 {
-    mod->processVibrato(ppfBuffer, ppfBuffer, iBuffSize, vibratoFrq);
+	mod->processVibrato(ppfBuffer, ppfBuffer, iBuffSize, vibratoFrq);
 }
 
 void AudioProcessingComponent::setEffect(AudioProcessingComponent::Effects& effect, int val)
 {
-    switch (val)
-    {
-    case 1:
-        effect = Effects::none;
-        break;
-    case 2:
-        effect = Effects::lpf;
-        break;
-    case 3:
-        effect = Effects::reverb;
-        break;
-    case 4:
-        effect = Effects::comb;
-        break;
-    case 5:
-        effect = Effects::flanger;
-        break;
-    case 6:
-        effect = Effects::chorus;
-        break;
-    case 7:
-        effect = Effects::vibrato;
-        break;
-    default:
-        effect = Effects::none;
-        break;
+	switch (val)
+	{
+	case 1:
+		effect = Effects::none;
+		break;
+	case 2:
+		effect = Effects::lpf;
+		break;
+	case 3:
+		effect = Effects::reverb;
+		break;
+	case 4:
+		effect = Effects::comb;
+		break;
+	case 5:
+		effect = Effects::flanger;
+		break;
+	case 6:
+		effect = Effects::chorus;
+		break;
+	case 7:
+		effect = Effects::vibrato;
+		break;
+	default:
+		effect = Effects::none;
+		break;
 
-    }
+	}
 }
 
-void AudioProcessingComponent::ModuleManager(Effects* effects, juce::AudioBuffer<float>& outputAudio, int startSample, 
-                                                int numSamples, float* ppfBuffer, float fcutoff, float fGain, 
-                                                int delayInSamps, float chorusFrq, float flangerFrq, float vibratoFrq) 
+void AudioProcessingComponent::ModuleManager(Effects* effects, juce::AudioBuffer<float>& outputAudio, int startSample,
+	int numSamples, float* ppfBuffer, float fcutoff, float fGain,
+	int delayInSamps, float chorusFrq, float flangerFrq, float vibratoFrq)
 {
-    for (int i = 0; i < 6; i++)
-    {
-        switch (effects[i])
-        {
-        case Effects::none:
-            break;
-        case Effects::reverb:
-            applyReverb(outputAudio, startSample, numSamples);
-            break;
-        case Effects::lpf:
-            applyMovingAverageFilter(ppfBuffer, numSamples, fcutoff, fGain);
-            break;
-        case Effects::comb:
-            applyCombFilter(ppfBuffer, numSamples, delayInSamps, fGain);
-            break;
-        case Effects::flanger:
-            applyFlanger(ppfBuffer, numSamples, flangerFrq);
-            break;
-        case Effects::chorus:
-            applyChorus(ppfBuffer, numSamples, chorusFrq);
-            break;
-        case Effects::vibrato:
-            applyVibrato(ppfBuffer, numSamples, vibratoFrq);
-            break;
-        default:
-            break;
-        }
-    }
+	for (int i = 0; i < 6; i++)
+	{
+		switch (effects[i])
+		{
+		case Effects::none:
+			break;
+		case Effects::reverb:
+			applyReverb(outputAudio, startSample, numSamples);
+			break;
+		case Effects::lpf:
+			applyMovingAverageFilter(ppfBuffer, numSamples, fcutoff, fGain);
+			break;
+		case Effects::comb:
+			applyCombFilter(ppfBuffer, numSamples, delayInSamps, fGain);
+			break;
+		case Effects::flanger:
+			applyFlanger(ppfBuffer, numSamples, flangerFrq);
+			break;
+		case Effects::chorus:
+			applyChorus(ppfBuffer, numSamples, chorusFrq);
+			break;
+		case Effects::vibrato:
+			applyVibrato(ppfBuffer, numSamples, vibratoFrq);
+			break;
+		default:
+			break;
+		}
+	}
 }
